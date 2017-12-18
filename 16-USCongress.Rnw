@@ -58,8 +58,33 @@ elections?}
 \author{Jan Trommelmans}
 
 \begin{document}
-\SweaveOpts{concordance=TRUE,prefix.string=USCongress}
+\SweaveOpts{concordance=TRUE,prefix.string=USC}
 \setkeys{Gin}{width=1.1\marginparwidth} %% Sweave
+
+<<echo=FALSE>>=
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(zoo)
+@
+
+% Setting the ggplot theme:
+<<echo=FALSE>>=
+JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
+                  panel.background = element_blank(),
+                  panel.grid.major = element_line(colour = "gray85"),
+                  panel.grid.minor = element_line(colour = "gray85"),
+                  panel.grid.major.x = element_line(colour = "gray85"),
+                  axis.text = element_text(size = 8 , face = "bold"),
+                  axis.title = element_text(size = 9 , face = "bold"),
+                  plot.title = element_text(size = 12 , face = "bold"),
+                  strip.text = element_text(size = 8 , face = "bold"),
+                  strip.background = element_rect(colour = "black"),
+                  legend.text = element_text(size = 8),
+                  legend.title = element_text(size = 9 , face = "bold"),
+                  legend.background = element_rect(fill = "white"),
+                  legend.key = element_rect(fill = "white"))
+@
 
 \mainmatter
 
@@ -89,6 +114,7 @@ The Democrats have a lot of work to do in order to gain the Senate:
   \item Health problems (McCain) could conceivably cause extra special elections
 \end{itemize}
 
+Based on this information I do not think that it is likely that the Democrats can take the Senate. At the moment I put it on 40\% which is noted as $P[S_{Dem}]=0.4$. This also means that the probability that the Republicans hold the Senate is $P[S_{Rep}]=0.6$.
 
 \section{The House}
 
@@ -103,20 +129,102 @@ The Democrats have a lot of work to do in order to gain the Senate:
 
 All seats are up for election.
 
-There is a strong correlation between the number of seats \emph{lost} in a mid-term election and the approval rate of the president\sidenote{https://arxiv.org/pdf/1503.07545.pdf}. The formula, with y= number of seats change for incumbent (+ is gain, - is loss) and x=approval rating (by Gallup) of the president at the moment of election, is:
+There is a strong correlation between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote{https://arxiv.org/pdf/1503.07545.pdf}. I have redone the calculation, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
 
-\begin{equation}
-  y = -107.423 + 1.594x
-\end{equation}
+<<label=midterm,fig=TRUE,include=FALSE, echo=FALSE>>=
+midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain", "Term"), na.strings="NA", stringsAsFactors = FALSE)
+ggplot(data=midterm) +
+  geom_point(aes(x = Approval, y = Gain, colour = factor(Term))) +
+  labs(title="Gain (+) or Loss (-) of seats in the House midterm\nelections in function of approval rate (%)", colour="Term") +
+  JT.theme
+@
 
-At the moment the Gallup approval rating is 35\% . The predicted change in the number of seats is:
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{USC-midterm}
+\caption{}
+\label{fig:midterm}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+We fit a linear model through all these points
 
 <<>>=
-y <- -107.423 + 1.594*35
+modall <- lm(midterm$Gain ~ midterm$Approval)
+summary(modall)
+@
+
+\medskip
+Not great. It seems that a model for the first term of a president would be better:
+\medskip
+<<>>=
+midterm %>% select(Gain, Approval, Term) %>% filter(Term==1) -> midterm1
+modterm1 <- lm(Gain ~ Approval, data=midterm1)
+summary(modterm1)
+@
+\medskip
+That's better.
+\medskip
+
+<<label=midterm1_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot(midterm1, aes(x=Approval, y=Gain)) + 
+  geom_point(shape=1) + 
+  geom_smooth(method=lm) +
+  labs(title="Gain (+) or Loss (-) of seats in the House midterm elections\nin function of approval rate (%) for  first term president") +
+  JT.theme
+@
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{USC-midterm1_lm}
+\caption{}
+\label{fig:midterm1_lm}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+
+\begin{equation}
+  y = -140.5292 + 2.2224x
+\end{equation}
+
+At the moment the Gallup approval rating of Trump is 35\% . The predicted change in the number of seats is:
+
+<<>>=
+y <- -140.5292 + 2.2224*35
 y
 @
 
-To gain control of the House, the Democrats need 218 seats or an overall gain of 25. \sidenote{Extra work is needed here to get the 95\%-confidence interval}.
+Because the approval rate of Trump is so low, it is not even on the graph. So the confidence intervals will be larger. However: as the Republicans can only need afford a loss of 25 seats, the probability that the Democrats take the House seems high.
+
+Based on this information\sidenote{Some extra work to be done here. Are there other factors than the presidents approval rate? Disapproval? Combination of these two?} I think that it is likely that the Democrats take the House. At the moment I put it on 65\% which is noted as $P[H_{Dem}]=0.65$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.35$.
+
+\section{Calculating probabilities}
+
+\newthought{All depends on} the question if the events ''election for the Senate" and ''election for the House" can be considered to be indepedent of each other or not.
+
+\subsection{Independent}
+
+If they are \emph{independent} calculations are very easy. The general rule is that
+\begin{equation}
+  P[X \quad AND \quad Y]=P[X]*P[Y]
+\end{equation}
+\medskip
+This gives the following results:
+\begin{itemize}
+  \item $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem}]*P[H_{Dem}]=0.4*0.65=0.26$
+  \item $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem}]*P[H_{Rep}]=0.4*0.35=0.14$
+  \item $P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.6*0.65=0.39$
+  \item $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.6*0.35=0.21$
+\end{itemize}
+
+\subsection{Dependent}
+
+Here things become interesting. It seems strange that the result of the Senate elections could be influenced by the results of the House elections (and vice versa), because those results are not known. However: polls can give a clear indication that things are very likely to move in a certain direction. And while polls are only what they are, and should be treated carefully, it is not unthinkable that voters who have the impression that e.g. the House is going to the Democrats will take this into account. ''Taking it into account" can mean very many things:
+
+\begin{itemize}
+  \item They will try to block this party from controlling the Senate
+  \item They are enthousiastic and will take part in the election in order to also take the Senate
+  \item Voter for the other party are disheartened and do not bother to vote
+  \item ....
+\end{itemize}
 
 \chapter{Forecasts}
 
