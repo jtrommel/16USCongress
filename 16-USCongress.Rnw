@@ -63,6 +63,65 @@ elections?}
 
 \mainmatter
 
-\chapter{Data}
+\chapter{General observations}
+
+\section{The Senate}
+
+\newthought{The situation} is as follows:
+
+\begin{tabular}{ l | r | r || r | }
+   now & Dem & Rep & Total \\
+  \hline
+  seats & 49 & 51 & 100 \\
+  to elect & -26 & -8 & -34 \\
+  firm & +17 & +6 & +23 \\
+  \hline
+  start position & 40 & 49 & 89 \\
+  \hline
+  unsure & 9 & 2 & 11 \\
+  \hline
+\end{tabular}
+
+The Democrats have a lot of work to do in order to gain the Senate:
+\begin{itemize}
+  \item They must hold onto their seats in states that Trump won. In 5 of those states (West-Virginia, North Dakota, Missouri, Montana and Indiana) he won with more than 10\% difference.
+  \item They need to get at least two and preferably three in the group Arizona, Nevada, Tennessee, Texas.
+  \item Health problems (McCain) could conceivably cause extra special elections
+\end{itemize}
+
+
+\section{The House}
+
+\newthought{The situation} is as follows:
+
+\begin{tabular}{ l | r | r | r || r | }
+   now & Dem & Rep & Vacant & Total \\
+  \hline
+  seats & 193 & 239 & 3 & 435 \\
+  \hline
+\end{tabular}
+
+All seats are up for election.
+
+There is a strong correlation between the number of seats \emph{lost} in a mid-term election and the approval rate of the president\sidenote{https://arxiv.org/pdf/1503.07545.pdf}. The formula, with y= number of seats change for incumbent (+ is gain, - is loss) and x=approval rating (by Gallup) of the president at the moment of election, is:
+
+\begin{equation}
+  y = -107.423 + 1.594x
+\end{equation}
+
+At the moment the Gallup approval rating is 35\% . The predicted change in the number of seats is:
+
+<<>>=
+y <- -107.423 + 1.594*35
+y
+@
+
+To gain control of the House, the Democrats need 218 seats or an overall gain of 25. \sidenote{Extra work is needed here to get the 95\%-confidence interval}.
+
+\chapter{Forecasts}
+
+\section{2017-12-17}
+
+
 
 \end{document}
