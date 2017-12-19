@@ -88,11 +88,12 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
 
 \mainmatter
 
-\chapter{General observations}
+\chapter{Will the Democrats gain control of Congress in the 2018 midterm elections?}
 
 \section{The Senate}
 
-\newthought{The situation} is as follows:
+\newthought{The situation} is as follows\sidenote{This situation evolves: Cook gives ''a toss up" for 4 Democratic states and for 3 Republican states}:\\
+\medskip
 
 \begin{tabular}{ l | r | r || r | }
    now & Dem & Rep & Total \\
@@ -107,6 +108,7 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
   \hline
 \end{tabular}
 
+\bigskip
 The Democrats have a lot of work to do in order to gain the Senate:
 \begin{itemize}
   \item They must hold onto their seats in states that Trump won. In 5 of those states (West-Virginia, North Dakota, Missouri, Montana and Indiana) he won with more than 10\% difference.
@@ -115,10 +117,11 @@ The Democrats have a lot of work to do in order to gain the Senate:
 \end{itemize}
 
 Based on this information I do not think that it is likely that the Democrats can take the Senate. At the moment I put it on 40\% which is noted as $P[S_{Dem}]=0.4$. This also means that the probability that the Republicans hold the Senate is $P[S_{Rep}]=0.6$.
-
+\newpage
 \section{The House}
 
 \newthought{The situation} is as follows:
+\medskip
 
 \begin{tabular}{ l | r | r | r || r | }
    now & Dem & Rep & Vacant & Total \\
@@ -127,14 +130,19 @@ Based on this information I do not think that it is likely that the Democrats ca
   \hline
 \end{tabular}
 
+\medskip
 All seats are up for election.
 
 There is a strong correlation between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote{https://arxiv.org/pdf/1503.07545.pdf}. I have redone the calculation, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
 
 <<label=midterm,fig=TRUE,include=FALSE, echo=FALSE>>=
 midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain", "Term"), na.strings="NA", stringsAsFactors = FALSE)
+meanloss <- data.frame(x = c(-Inf, Inf),
+                     y = round(mean(midterm$Gain),1),
+                     mean.loss = factor(round(mean(midterm$Gain), 1)))
 ggplot(data=midterm) +
   geom_point(aes(x = Approval, y = Gain, colour = factor(Term))) +
+  geom_line(aes(x, y, linetype = mean.loss), meanloss, colour="red") +
   labs(title="Gain (+) or Loss (-) of seats in the House midterm\nelections in function of approval rate (%)", colour="Term") +
   JT.theme
 @
@@ -169,6 +177,7 @@ That's better.
 ggplot(midterm1, aes(x=Approval, y=Gain)) + 
   geom_point(shape=1) + 
   geom_smooth(method=lm) +
+  geom_line(aes(x, y, linetype = mean.loss), meanloss, colour="red") +
   labs(title="Gain (+) or Loss (-) of seats in the House midterm elections\nin function of approval rate (%) for  first term president") +
   JT.theme
 @
@@ -192,9 +201,9 @@ y <- -140.5292 + 2.2224*35
 y
 @
 
-Because the approval rate of Trump is so low, it is not even on the graph. So the confidence intervals will be larger. However: as the Republicans can only need afford a loss of 25 seats, the probability that the Democrats take the House seems high.
+Because the approval rate of Trump is so low, it is not even on the graph. So the confidence intervals will be larger. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
 
-Based on this information\sidenote{Some extra work to be done here. Are there other factors than the presidents approval rate? Disapproval? Combination of these two?} I think that it is likely that the Democrats take the House. At the moment I put it on 65\% which is noted as $P[H_{Dem}]=0.65$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.35$.
+Based on this information\sidenote{Some extra work to be done here. Are there other factors than the presidents approval rate? Disapproval? Combination of these two?} I think that it is likely that the Democrats take the House. At the moment I put it on 60\% which is noted as $P[H_{Dem}]=0.6$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.4$. For the Senate I follow Nate Silver\sidenote{https://fivethirtyeight.com/features/do-democrats-need-to-win-in-alabama-to-take-the-senate-in-2018/} who put the probability that the Democrats win the Senate to 0.5 \emph{if the Democrats would win Alabama.} And they did! So $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$.
 
 \section{Calculating probabilities}
 
@@ -209,27 +218,51 @@ If they are \emph{independent} calculations are very easy. The general rule is t
 \medskip
 This gives the following results:
 \begin{itemize}
-  \item $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem}]*P[H_{Dem}]=0.4*0.65=0.26$
-  \item $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem}]*P[H_{Rep}]=0.4*0.35=0.14$
-  \item $P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.6*0.65=0.39$
-  \item $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.6*0.35=0.21$
+  \item $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem}]*P[H_{Dem}]=0.5*0.6=0.3$
+  \item $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem}]*P[H_{Rep}]=0.5*0.4=0.2$
+  \item $P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.5*0.6=0.3$
+  \item $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.5*0.4=0.2$
 \end{itemize}
 
 \subsection{Dependent}
 
-Here things become interesting. It seems strange that the result of the Senate elections could be influenced by the results of the House elections (and vice versa), because those results are not known. However: polls can give a clear indication that things are very likely to move in a certain direction. And while polls are only what they are, and should be treated carefully, it is not unthinkable that voters who have the impression that e.g. the House is going to the Democrats will take this into account. ''Taking it into account" can mean very many things:
+Here things become interesting. It seems strange that the result of the Senate elections could be influenced by the results of the House elections (and vice versa), because people vote at the same time for House and Senate. However: polls can give a clear indication that things are very likely to move in a certain direction. And while polls are only what they are, and should be treated carefully, it is not unthinkable that voters who have the impression that e.g. the House is going to the Democrats, or that the Senate is more or less guaranteed for the Republicans, will take this into account. ''Taking it into account" can mean very many things:
 
 \begin{itemize}
-  \item They will try to block this party from controlling the Senate
-  \item They are enthousiastic and will take part in the election in order to also take the Senate
-  \item Voter for the other party are disheartened and do not bother to vote
+  \item They will try to block the other party from controlling the Senate or the House.
+  \item They are enthousiastic and there will be a high turnout in order to get control of Congress as a whole
+  \item Voters get disheartened and do not bother to vote
   \item ....
 \end{itemize}
+
+The Alabama election has shown that the Republicans suffered from a poor turnout, while the Democrats got their voters going. I believe that the positive effects (large turnout, enthousiasm) is more likely for the Democrats, while the negative effects (can't be bothered, not willing to vote for the other candidate after a preselection run) are more likely for the Republicans. Let's do an exercises:
+
+If it starts to look likely that the Democrats will win the House the probability rises from 0.6 to 0.8: $P[H_{Dem}]=0.8$. The probability of a Republica win falls to $P[H_{Rep}]=0.2$\\
+\emph{Given this probability}: what is the effect on the probabilities for the Senate?\\ 
+  At the moment they are 50/50. But if the ''Alabama-effect" switches on it could change the probabilities for both parties: $P[S_{Dem} | H_{Dem}]=0.6$ and $P[S_{Rep} | H_{Dem}]=0.4$. The notation $P[S_{Dem} | H_{Dem}]=0.6$ means ''the probability of the Senate going to the Democrats \emph{given that we know} that the House will be Democratic".\\ 
+The negative outlook for the House depresses the Republicans and that encourages the Democrats: $P[S_{Dem} | H_{Rep}]=0.6$ and $P[S_{Rep} | H_{Rep}]=0.4$.
+\newpage
+This gives the following results:
+\begin{itemize}
+  \item $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem} | H_{Dem}]*P[H_{Dem}]=0.6*0.8=0.48$
+  \item $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem} | H_{Rep}]*P[H_{Rep}]=0.6*0.2=0.12$
+  \item $P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep} | H_{Dem}]*P[H_{Dem}]=0.4*0.8=0.32$
+  \item $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep} | H_{Rep}]*P[H_{Rep}]=0.4*0.2=0.08$
+\end{itemize}
+\medskip
+There is a big margin of change! So I will look out for what the FiveThirtyEight and Cook websites indicate for the likely win in Senate and House + the results of elections in between (turnout for Republicans and Democrats) and the evolution of Trump's approval rate.
 
 \chapter{Forecasts}
 
 \section{2017-12-17}
+\medskip
 
+\begin{itemize}
+  \item Yes, both chambers: $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem}]*P[H_{Dem}]=0.5*0.6=0.3$
+  \item Yes, the Senate, but not the House: $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem}]*P[H_{Rep}]=0.5*0.4=0.2$
+  \item Yes, the House, but not the Senate:$P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.5*0.6=0.3$
+  \item No: $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.5*0.4=0.2$
+\end{itemize}
 
 
 \end{document}
