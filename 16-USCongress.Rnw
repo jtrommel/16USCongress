@@ -119,6 +119,7 @@ The Democrats have a lot of work to do in order to gain the Senate:
 Based on this information I do not think that it is likely that the Democrats can take the Senate. At the moment I put it on 40\% which is noted as $P[S_{Dem}]=0.4$. This also means that the probability that the Republicans hold the Senate is $P[S_{Rep}]=0.6$.
 \newpage
 \section{The House}
+\subsection{Influence of the president's approval rate}
 
 \newthought{The situation} is as follows:
 \medskip
@@ -136,7 +137,7 @@ All seats are up for election.
 There is a strong correlation between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote{https://arxiv.org/pdf/1503.07545.pdf}. I have redone the calculation, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
 
 <<label=midterm,fig=TRUE,include=FALSE, echo=FALSE>>=
-midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain", "Term"), na.strings="NA", stringsAsFactors = FALSE)
+midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain", "Term","GenDem","GenRep","PresParty"), na.strings="NA", stringsAsFactors = FALSE)
 meanloss <- data.frame(x = c(-Inf, Inf),
                      y = round(mean(midterm$Gain),1),
                      mean.loss = factor(round(mean(midterm$Gain), 1)))
@@ -154,24 +155,22 @@ ggplot(data=midterm) +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-We fit a linear model through all these points
-
-<<>>=
+<<echo=FALSE>>=
 modall <- lm(midterm$Gain ~ midterm$Approval)
-summary(modall)
+summary(modall)$r.squared
 @
 
+We can fit a linear model through all these points. The $R^{2}$-value is \Sexpr{round(summary(modall)$r.squared,2)}. That is not very impressive.
+
 \medskip
-Not great. It seems that a model for the first term of a president would be better:
+It seems that a model for \emph{the first term} of a president could be better.
 \medskip
-<<>>=
-midterm %>% select(Gain, Approval, Term) %>% filter(Term==1) -> midterm1
+<<echo=FALSE>>=
+midterm %>% filter(Term==1) -> midterm1
 modterm1 <- lm(Gain ~ Approval, data=midterm1)
-summary(modterm1)
 @
 \medskip
-That's better.
-\medskip
+The $R^{2}$-value is \Sexpr{round(summary(modterm1)$r.squared,2)}. That is better.
 
 <<label=midterm1_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot(midterm1, aes(x=Approval, y=Gain)) + 
@@ -203,9 +202,107 @@ y
 
 Because the approval rate of Trump is so low, it is not even on the graph. So the confidence intervals will be larger. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
 
+\subsection{Are other factors better predictors?}
+
+\newthought{The Disapproval rate} could be a better predictor.
+
+\medskip
+<<echo=FALSE>>=
+midterm %>% select(Gain, Disapproval, Term) %>% filter(Term==1) -> midterm1dis
+modterm1dis <- lm(Gain ~ Disapproval, data=midterm1dis)
+@
+\medskip
+The $R^{2}$-value for the model based on the \emph{Disapproval rate} is \Sexpr{round(summary(modterm1dis)$r.squared,2)}. No improvement.
+
+\newthought{Maybe the difference between Approval and Disapproval rate?}
+
+\medskip
+<<echo=FALSE>>=
+midterm1$Diff <- midterm1$Approval - midterm1$Disapproval
+modterm1diff <- lm(Gain ~ Diff, data=midterm1)
+@
+\medskip
+The $R^{2}$-value for the model based on the \emph{Difference} is \Sexpr{round(summary(modterm1diff)$r.squared,2)}. No improvement.
+
+\newthought{Maybe the ratio: Approval/Disapproval?}
+
+\medskip
+<<echo=FALSE>>=
+midterm1$Ratio <- midterm1$Approval/midterm1$Disapproval
+modterm1ratio <- lm(Gain ~ Ratio, data=midterm1)
+@
+\medskip
+The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summary(modterm1ratio)$r.squared,2)}. No improvement.
+
 Based on this information\sidenote{Some extra work to be done here. Are there other factors than the presidents approval rate? Disapproval? Combination of these two?} I think that it is likely that the Democrats take the House. At the moment I put it on 60\% which is noted as $P[H_{Dem}]=0.6$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.4$. For the Senate I follow Nate Silver\sidenote{https://fivethirtyeight.com/features/do-democrats-need-to-win-in-alabama-to-take-the-senate-in-2018/} who put the probability that the Democrats win the Senate to 0.5 \emph{if the Democrats would win Alabama.} And they did! So $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$.
 
 \section{Calculating probabilities}
+
+\subsection{Some background on conditional probabilities}
+
+\newthought{Ken Barns} made some calculations on the probabilties that e.g. the Democrats would win both the House and the Senate. He uses something called the \emph{Likelhood Ratio}. I must admit I was not familiar with this. But it is linked to \emph{conditional probabilities}, and I know something about those. 
+
+A visualization might help. After the elections it will be very easy to draw a graph showing how many voters in the House election voted for the Democrats, and how many for the Republicans (Figure~\ref{fig:House1}). 
+
+\begin{marginfigure}[-6cm]
+\includegraphics[width=1\textwidth]{Graphics/House1}
+\caption{}
+\label{fig:House1}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+However, at this moment we do not know the result. We can only give our best guess as to the result and express this probability as a percentage (Figure~\ref{fig:House2}). The percentages we give (in this case 60\% and 40\%) are based on what we gather from external sources and our own ''insight". Symbolically we write this as:
+\begin{equation}
+ P[H_{Dem}]=0.6 \qquad P[H_{Rep}]=0.4
+\end{equation}
+
+The letter P stands for \textbf{P}robability and between the square brackets we describe the event to which we assing this probability.
+
+\begin{marginfigure}[-5cm]
+\includegraphics[width=1\textwidth]{Graphics/House2}
+\caption{}
+\label{fig:House2}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+Of course we can do the same for the elections of the Senate. With
+\begin{equation}
+ P[S_{Dem}]=0.5 \qquad P[S_{Rep}]=0.5
+\end{equation}
+we get the Figure~\ref{fig:Senate2}
+
+\begin{marginfigure}
+\includegraphics[width=0.8\textwidth]{Graphics/Senate2}
+\caption{}
+\label{fig:Senate2}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+\newpage
+It becomes interesting when we combine both graphs. I think that, intuitively, most people would make the following graph (Figure~\ref{fig:Both0}). 
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{Graphics/Both0}
+\caption{}
+\label{fig:Both0}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+It is easy to calculate the area of the four regions. For example, the area on the top left would be 60\%*50\%=30\%. When we do this calculation for all four areas we get Figure~\ref{fig:Both1}. As we can see the sum along the rows result in the numbers to the right. The sum along the columns result in the numbers at the bottom. The four areas give the four possible outcomes of the election:
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{Graphics/Both1}
+\caption{}
+\label{fig:Both1}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+\begin{enumerate}
+  \item area A is the situation that the Democrats win the House \textbf{AND} the Senate
+  \item area B is Democrats win the House \textbf{AND} Republicans win the Senate
+  \item area C is Republicans win the House\textbf{AND} Democrats in the Senate
+  \item area D is Republicans win the House \textbf{AND} the Senate
+\end{enumerate}
+
+
 
 \newthought{All depends on} the question if the events ''election for the Senate" and ''election for the House" can be considered to be indepedent of each other or not.
 
