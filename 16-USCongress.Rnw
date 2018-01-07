@@ -116,7 +116,7 @@ The Democrats have a lot of work to do in order to gain the Senate:
   \item Health problems (McCain) could conceivably cause extra special elections
 \end{itemize}
 
-Based on this information I do not think that it is likely that the Democrats can take the Senate. At the moment I put it on 40\% which is noted as $P[S_{Dem}]=0.4$. This also means that the probability that the Republicans hold the Senate is $P[S_{Rep}]=0.6$.
+For the Senate I follow Nate Silver\sidenote{https://fivethirtyeight.com/features/do-democrats-need-to-win-in-alabama-to-take-the-senate-in-2018/} who put the probability that the Democrats win the Senate to 0.5 \emph{if the Democrats would win Alabama.} And they did! So $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$.
 \newpage
 \section{The House}
 \subsection{Influence of the president's approval rate}
@@ -157,7 +157,6 @@ ggplot(data=midterm) +
 
 <<echo=FALSE>>=
 modall <- lm(midterm$Gain ~ midterm$Approval)
-summary(modall)$r.squared
 @
 
 We can fit a linear model through all these points. The $R^{2}$-value is \Sexpr{round(summary(modall)$r.squared,2)}. That is not very impressive.
@@ -193,14 +192,14 @@ ggplot(midterm1, aes(x=Approval, y=Gain)) +
   y = -140.5292 + 2.2224x
 \end{equation}
 
-At the moment the Gallup approval rating of Trump is 35\% . The predicted change in the number of seats is:
+At the moment (2018-01-07 the Gallup approval rating of Trump is 39\% . The predicted change in the number of seats is:
 
 <<>>=
-y <- -140.5292 + 2.2224*35
+y <- -140.5292 + 2.2224*39
 y
 @
 
-Because the approval rate of Trump is so low, it is not even on the graph. So the confidence intervals will be larger. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
+The approval rate of Trump is low. So the confidence interval is large: -37 to -70 seats. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
 
 \subsection{Are other factors better predictors?}
 
@@ -234,17 +233,18 @@ modterm1ratio <- lm(Gain ~ Ratio, data=midterm1)
 \medskip
 The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summary(modterm1ratio)$r.squared,2)}. No improvement.
 
-Based on this information\sidenote{Some extra work to be done here. Are there other factors than the presidents approval rate? Disapproval? Combination of these two?} I think that it is likely that the Democrats take the House. At the moment I put it on 60\% which is noted as $P[H_{Dem}]=0.6$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.4$. For the Senate I follow Nate Silver\sidenote{https://fivethirtyeight.com/features/do-democrats-need-to-win-in-alabama-to-take-the-senate-in-2018/} who put the probability that the Democrats win the Senate to 0.5 \emph{if the Democrats would win Alabama.} And they did! So $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$.
+Based on this information I think that it is likely that the Democrats take the House. At the moment I put it on 60\% which is noted as $P[H_{Dem}]=0.6$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.4$. 
 
-\section{Calculating probabilities}
+\newpage
+\chapter{Conditional probabilities and the Likelihood Ratio}
 
-\subsection{Some background on conditional probabilities}
+\section{About graphs, tables and many solutions}
 
-\newthought{Ken Barns} made some calculations on the probabilties that e.g. the Democrats would win both the House and the Senate. He uses something called the \emph{Likelhood Ratio}. I must admit I was not familiar with this. But it is linked to \emph{conditional probabilities}, and I know something about those. 
+\newthought{Ken Barns} posted a comment in the Good Judgement Open. In it he discussed a way to calculate the probability that e.g. the Democrats would win both the House and the Senate. He used the concept of the \emph{Likelihood Ratio}. I must admit I was not familiar with this. But it is linked to \emph{conditional probabilities}, and I know something about those. 
 
 A visualization might help. After the elections it will be very easy to draw a graph showing how many voters in the House election voted for the Democrats, and how many for the Republicans (Figure~\ref{fig:House1}). 
 
-\begin{marginfigure}[-6cm]
+\begin{marginfigure}[-5cm]
 \includegraphics[width=1\textwidth]{Graphics/House1}
 \caption{}
 \label{fig:House1}
@@ -256,7 +256,7 @@ However, at this moment we do not know the result. We can only give our best gue
  P[H_{Dem}]=0.6 \qquad P[H_{Rep}]=0.4
 \end{equation}
 
-The letter P stands for \textbf{P}robability and between the square brackets we describe the event to which we assing this probability.
+The letter P stands for \textbf{P}robability and between the square brackets we describe the event to which we assigning this probability.
 
 \begin{marginfigure}[-5cm]
 \includegraphics[width=1\textwidth]{Graphics/House2}
@@ -271,59 +271,324 @@ Of course we can do the same for the elections of the Senate. With
 \end{equation}
 we get the Figure~\ref{fig:Senate2}
 
-\begin{marginfigure}
+\begin{marginfigure}[-1cm]
+\begin{flushright}
 \includegraphics[width=0.8\textwidth]{Graphics/Senate2}
 \caption{}
 \label{fig:Senate2}
 \setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
-\newpage
-It becomes interesting when we combine both graphs. I think that, intuitively, most people would make the following graph (Figure~\ref{fig:Both0}). 
-\begin{marginfigure}
-\includegraphics[width=1\textwidth]{Graphics/Both0}
-\caption{}
-\label{fig:Both0}
-\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{flushright}
 \end{marginfigure}
 
-It is easy to calculate the area of the four regions. For example, the area on the top left would be 60\%*50\%=30\%. When we do this calculation for all four areas we get Figure~\ref{fig:Both1}. As we can see the sum along the rows result in the numbers to the right. The sum along the columns result in the numbers at the bottom. The four areas give the four possible outcomes of the election:
-
-\begin{marginfigure}
-\includegraphics[width=1\textwidth]{Graphics/Both1}
-\caption{}
-\label{fig:Both1}
+It becomes interesting when we combine both graphs. I think that, \textbf{intuitively}, most people would make the following graph (Figure~\ref{fig:Both4}).
+\medskip
+\begin{figure}
+\includegraphics[width=1\textwidth]{Graphics/Both4}
+\caption{Combined graphs}
+\label{fig:Both4}
 \setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
+\end{figure}
+
+It is easy to calculate the area of the four regions. For example, the top left area would be 60\%*50\%=30\%. As we can see the sum along the rows result in the numbers to the right. The sum along the columns result in the numbers at the bottom. The four areas give the four possible outcomes of the election:
 
 \begin{enumerate}
-  \item area A is the situation that the Democrats win the House \textbf{AND} the Senate
-  \item area B is Democrats win the House \textbf{AND} Republicans win the Senate
-  \item area C is Republicans win the House\textbf{AND} Democrats in the Senate
-  \item area D is Republicans win the House \textbf{AND} the Senate
+  \item top left is the situation that the Democrats win the House \textbf{AND} the Senate
+  \item top right is Democrats win the House \textbf{AND} Republicans win the Senate
+  \item bottom left is Republicans win the House \textbf{AND} Democrats in the Senate
+  \item bottom right is Republicans win the House \textbf{AND} the Senate
 \end{enumerate}
 
+Our \textbf{intuitive} calculation can be summarised by the following formula:
 
-
-\newthought{All depends on} the question if the events ''election for the Senate" and ''election for the House" can be considered to be indepedent of each other or not.
-
-\subsection{Independent}
-
-If they are \emph{independent} calculations are very easy. The general rule is that
 \begin{equation}
   P[X \quad AND \quad Y]=P[X]*P[Y]
+  label{eq:independent}
 \end{equation}
 \medskip
-This gives the following results:
+
 \begin{itemize}
-  \item $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem}]*P[H_{Dem}]=0.5*0.6=0.3$
-  \item $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem}]*P[H_{Rep}]=0.5*0.4=0.2$
-  \item $P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.5*0.6=0.3$
-  \item $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.5*0.4=0.2$
+  \item $P[H_{Dem}$  AND  $S_{Dem}]=P[H_{Dem}]*P[S_{Dem}]=0.6*0.5=0.3$
+  \item $P[H_{Dem}$  AND  $S_{Rep}]=P[H_{Dem}]*P[S_{Rep}]=0.6*0.5=0.3$
+  \item $P[H_{Rep}$  AND  $S_{Dem}]=P[H_{Rep}]*P[S_{Dem}]=0.4*0.5=0.2$
+  \item $P[H_{Rep}$  AND  $S_{Rep}]=P[H_{Rep}]*P[S_{Rep}]=0.4*0.5=0.2$
 \end{itemize}
+\medskip
+In his comment Ken Barns describes the same situation and he puts it in a table (Table~\ref{tab:table1}).
 
-\subsection{Dependent}
+\begin{margintable}
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.3 & 0.3 & 0.6 \\
+  $H_{Rep}$ & 0.2 & 0.2 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:table1}
+\end{margintable}
 
-Here things become interesting. It seems strange that the result of the Senate elections could be influenced by the results of the House elections (and vice versa), because people vote at the same time for House and Senate. However: polls can give a clear indication that things are very likely to move in a certain direction. And while polls are only what they are, and should be treated carefully, it is not unthinkable that voters who have the impression that e.g. the House is going to the Democrats, or that the Senate is more or less guaranteed for the Republicans, will take this into account. ''Taking it into account" can mean very many things:
+\newthought{The shock} comes when we realise that other solutions are also possible. For example Table~\ref{tab:table2} and Figure~\ref{fig:Both2}. The sum totals along the rows and columns are OK.
+
+\begin{margintable}
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.45 & 0.15 & 0.6 \\
+  $H_{Rep}$ & 0.05 & 0.35 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:table2}
+\end{margintable}
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=0.8\textwidth]{Graphics/Both2}
+\caption{}
+\label{fig:Both2}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+\newthought{How many possible solutions} are there? The answer is: an infinite number! We can see this as follows: when we start in the upper left corner ($H_{Dem}$ AND $S_{Dem}$) and we put there a number e.g. 0.31 the numbers in all the other squares follow from this choice. In the upper row the sum must be 0.6. From this it follows that the number in the upper right corner must be 0.6-0.31=0.29. In the left column the sum (at the bottom) must be 0.5. This means that the number in the lower left corner must be 0.5-0.31=0.19. In the same way we find that the number in the lower right corner must be 0.5-0.29=0.21 (Table~\ref{tab:solution3}).
+
+\begin{margintable}
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.31} & 0.29 & 0.6 \\
+  $H_{Rep}$ & 0.19 & 0.21 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:solution3}
+\end{margintable}
+
+We get another solution when we start this proces with the number 0.32 in the upper left corner. And another one starting with 0.33. And so on. This will give us 10 new solutions. But it does not end there: you could also start with the number 0.301. And with 0.302 etc. This would give us 100 solutions. And so on with 0.3001, or 0.30001 ... It goes on forever. This means there are an infinite number of solutions.
+
+\newthought{However infinite} does not mean that ''anything goes". For example: when we start in the upper left corner with the number 0.55 this would mean that the lower left corner should be -0.05 in order to get the total sum of the left column equal to 0.5 (Table~\ref{tab:impossible}). But our numbers express probabilities and that means that they can only have values between 0 and 1. Negative values or values above 1 do not make sense. So, within the infinite number of possible solutions, some are not allowed.
+
+\begin{margintable}[-2cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.55} & 0.05 & 0.6 \\
+  $H_{Rep}$ & -0.05 & 0.45 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:impossible}
+\end{margintable}
+
+\section{Conditional probabilities}
+
+\newthought{The beautiful thing} about conditional probabilities is that it can capture all possible solutions into one formula! The ''wonder"-formula is
+\begin{equation}
+  P[X \quad AND \quad Y]=P[Y]*P[X|Y]
+\label{eq:dependent}
+\end{equation}
+
+The new symbol P[X|Y] means: the probability that X will occur, \textbf{on conditon that} Y has already occured. You might object that in the case of the Congressional elections this is absurd because the elections for the House and the Senate are held at the same time There is no way of knowing beforehand that, for example, the Republicans have won the Senate, or the Democrats have won the House! I have to ask for some patience here, to postpone your judgement and to read on.
+
+\newthought{Suppose that we are convinced} that the result of the election of the Senate has \emph{no} influence at all on the result of the election of the House. This means that even if we knew the result of the Senate election, we would not change our opinion on the probabilities of the result on the House. We would keep these constant on $P[H_{Dem}]=0.6$ and $P[H_{Rep}]=0.4$ We can write this symbolically as:
+\begin{equation}
+  \begin{split}
+  P[H_{Dem} | S_{Dem}]&=P[H_{Dem} | S_{Rep}] = P[H_{Dem}] =0.6 \\ P[H_{Rep} | S_{Dem}]&=P[H_{Rep} | S_{Rep}] = P[H_{Rep}] =0.4
+  \end{split}
+\label{eq:noinfluenceSenate}
+\end{equation}
+
+When we apply the ''wonder"-fomula (\ref{eq:dependent}) in this situation we get:
+\begin{equation}
+  \begin{split}
+  P[H_{Dem} \quad AND \quad S_{Dem}]&=P[S_{Dem}]*P[H_{Dem}| S_{Dem}]=0.5*0.6=0.3\\
+  P[H_{Dem} \quad AND \quad S_{Rep}]&=P[S_{Rep}]*P[H_{Dem}| S_{Rep}]=0.5*0.6=0.3\\
+  P[H_{Rep} \quad AND \quad S_{Dem}]&=P[S_{Dem}]*P[H_{Rep}| S_{Dem}]=0.5*0.4=0.2\\
+  P[H_{Rep} \quad AND \quad S_{Rep}]&=P[S_{Rep}]*P[H_{Rep}| S_{Rep}]=0.5*0.4=0.2
+  \end{split}
+\label{eq:noinfluenceHouse}
+\end{equation}
+These are exactly the formulas that we used \textbf{intuitively} in Table~\ref{tab:table1}. In other words: our intuition leads us to pick one of the infinite possible solutions. This solution is the one in which we consider that all events are \emph{independent} of each other. The moment we allow the possibility that the events could be \emph{dependent} of each other, we suddenly can access an infinite number of solutions. The question is: how do we express this interdependency into probabilities we can use to make calculations?
+
+\section{The Likelihood Ratio}
+\label{sec:LR}
+In medical experimentation people are trying to develop tests to detect the presence (or absence) of a certain illness. So they have three basic steps:
+
+\begin{enumerate}
+  \item \emph{before the result of the test is available} the probability of presence of the illness is 60\%, and the probability of absence of the illness is 40\%. (I assume these probabilties are assigned based on other symptoms such as heartrate, blood pressure, temperature ...). In our example of the elections these percentages are $P[H_{Dem}]=0.6$, $P[H_{Rep}]=0.4$, $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$
+  \item the test results become available
+  \item \emph{after the test results have become available} and assuming that the presence of the illness and a positive test result are \emph{dependent}, we re-evaluate our probabilities of presence or absence of the illness. The re-evaluated probabilities are our conditional probabilities e.g. $P[S_{Dem} | H_{Dem}]$.
+\end{enumerate}
+\medskip
+The \emph{degree of dependency} between the test result and the presence of the illness are initially expressed in words like ''a weak test", ''a moderate increase in the likelihood", ''a strong increase in the likelihood" etc. Experience with tests and illnesses has allowed medical experimenters to translate these words into a number, called the \emph{Likelihood Ratio} (LR+). From the comment by Ken Barns I get that ''a weak test" has an LR+=2, a test that gives ''a moderate increase in the likelihood" has an LR+=6 and a test with a ''a strong increase in the likelihood" gets a LR+=15.
+
+This LR+value is used to calculate the conditional probability. Things get a little complicated here because the calculation uses a different way of looking at probabilities as it works with the \emph{odds}. But the LR+ calculation can be turned into a formula for the conditional probability\sidenote{If you are interested in the intermediate steps, please contact me}:
+\begin{equation}
+P[H_{Dem}|S_{Dem}]=\cfrac{\cfrac{P[H_{Dem}]}{P[H_{Rep}]}*LR^{+}}{\cfrac{P[H_{Dem}]}{P[H_{Rep}]}*LR^{+}+1}
+\end{equation}
+
+\newthought{If we believe} that the outcomes of the House and Senate elections are \emph{not} independent, we now have a tool to calculate the conditional probability. For example: if we believe that a win of the Democrats in the Senate would lead to ''a moderate increase in the likelihood" of a win of the House, we use a LR+=6 and we get:
+\begin{equation}
+P[H_{Dem}|S_{Dem}]=\cfrac{\cfrac{0.6}{0.4}*6}{\cfrac{0.6}{0.4}*6+1}=0.9
+\end{equation}
+
+The ''wonder"-formula gives us a new value for the top left corner of the table
+\begin{equation}
+  P[H_{Dem} \quad AND \quad S_{Dem}]=P[S_{Dem}]*P[H_{Dem}| S_{Dem}]=0.5*0.9=0.45
+\end{equation}
+
+From there on we can complete the whole Table~\ref{tab:LR6}
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.45} & 0.15 & 0.6 \\
+  $H_{Rep}$ & 0.05 & 0.35 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:LR6}
+\end{margintable}
+
+\newthought{The important thing} to realize here is that we did two things:
+
+\begin{enumerate}
+  \item we admitted that there is a relationship between the elections of the House and of the Senate
+  \item we qualified this dependency in words (''a moderate increase in the likelihood") and translated this into a Likelihood Ratio (in this case LR+=6)
+\end{enumerate}
+
+\section{Working the other way round}
+In \ref{sec:LR} we translated words (''a moderate increase in the likelihood")  into a Likelihood Ratio (LR+=6). A lot of research has gone into the quantifying the expressions we use for probabilities.
+
+But we can do it inversely and go from a conditional probability to a Likelyhood Ratio. The formula for the relationship between ''winning the House" on condition of ''winning the Senate" is:
+\begin{equation}
+LR^{+}=\cfrac{P[H_{Dem} | S_{Dem}]}{\cfrac{P[H_{Dem}]}{P[H_{Rep}]}*(1-P[H_{Dem}|S_{Dem}])}
+\label{eq:LRfromProb}
+\end{equation}
+
+A recent aricle in ''Revolutions"\sidenote{\url{http://blog.revolutionanalytics.com/2017/08/probably-more-probably-than-probable.html}} gives Figure~\ref{fig:perceptions}
+
+\begin{figure}
+\includegraphics[width=1\textwidth]{Graphics/perceptions}
+\caption{Perceptions of Probability}
+\label{fig:perceptions}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+For the case that $P[H_{Dem}]=0.6$ (and consequently $P[H_{Rep}=0.4]$) we can calculate the corresponding values of LR+ (lower boundary, modus and upper boundary):
+<<echo=FALSE>>=
+perceptions <- data.frame(Expression=c("Almost Certainly", "Highly Likely", "Very Good Chance", "Probable", "Likely", "We believe", "Probably", "Better Than Even", "About Even", "We Doubt", "Improbable", "Unlikely", "Probably Not", "Little Chance", "Almost No Chance", "Highly Unlikely", "Chances Are Slight"), Lower=c(70, 60, 60, 44, 50, 42, 40, 44, 40, 5, 2, 5, 10, 6, 0, 3, 6), Modus=c(90, 87, 75, 70, 68, 75, 73, 58, 50, 30, 25, 25, 30, 24, 11, 13, 17), Upper=c(100, 98, 92, 90, 90, 98, 90, 70, 60, 50, 55, 45, 55, 40, 25, 40, 50))
+perceptions[,-1] <- perceptions[,-1]/100
+perceptions$LRlower <- perceptions$Lower/((0.6/0.4)*(1-perceptions$Lower))
+perceptions$LRmodus <- perceptions$Modus/((0.6/0.4)*(1-perceptions$Modus))
+perceptions$LRupper <- perceptions$Upper/((0.6/0.4)*(1-perceptions$Upper))
+perceptions[, 5:7] <- round(perceptions[, 5:7],2)
+@
+
+<<>>=
+perceptions
+@
+
+We can see that the LR+scale goes from 0 to $+\infty$ while the scale of the conditional probabilities goes from 0 to 1. This means that using the Likelihood Ratio gives us more freedom to adjust the value of LR+. We can also see that these perceptions of probability give \emph{lower} values for LR+ than those that are used in medical experimentation.
+
+\section{Why are we concentrating on a House win \emph{given} a win in the Senate?}
+
+The top left corner of Table~\ref{tab:LR6} gives the situation assuming that after a win in the Senate, chances of winning the House are improving. This improvement is quantified as an LR+=6. But we could get the same result if, after winning the House the chances of winning the Senate improve. So why don't we look at the conditional probability that the Democrats win the Senate \emph{given} that they have won the Senate? We found the value of 0.45 by using the ''wonder" fomula:
+\begin{equation}
+P[H_{Dem} \quad AND \quad S_{Dem}]=P[S_{Dem}]*P[H_{Dem}|S_{Dem}]=0.5*0.9=0.45
+\end{equation}
+
+But the top left corner can equally be written as $P[S_{Dem} \quad AND \quad H_{Dem}]$. This expresses the same situation: the Democrats win both the House and the Senate. In that case it should also be true that:
+\begin{equation}
+P[S_{Dem} \quad AND \quad H_{Dem}]=P[H_{Dem}]*P[S_{Dem}|H_{Dem}]=0.45
+\end{equation}
+
+This means that $P[S_{Dem}|H_{Dem}]=\frac{0.45}{0.6}=0.75$. With equation~\ref{eq:LRfromProb} we can calculate the necessary value of LR+. It turns out to be equal to 3. As Ken Barns says: ''This represents a slight increase in the likelihood that winning the House leads to winning the Senate. Dems winning the Senate is a more useful tool to predict their House results ...".
+
+\section{What are the limits of the probabilities?}
+
+Probabilities cannot be smaller than 0 or greater than 1. The starting value in the top left corner was calculated as
+\begin{equation}
+P[H_{Dem} \quad AND \quad S_{Dem}]=P[S_{Dem}]*P[H_{Dem}|S_{Dem}]=0.5*P[H_{Dem}|S_{Dem}]
+\end{equation}
+
+The minimum value for $P[H_{Dem}|S_{Dem}]$ is 0 and the maximum value is 1. This means that the top left corner starting value can only be in the range of 0 to 0.5. Even 0 is not allowed because it would lead to a negative value in the low right corner (Table~\ref{tab:lowrightneg}).
+\begin{margintable}[-2cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0} & 0.6 & 0.6 \\
+  $H_{Rep}$ & 0.5 & -0.1 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:lowrightneg}
+\end{margintable}
+
+So the limits are given by Table~\ref{tab:limmin} and Table~\ref{tab:limmax}
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.1} & 0.5 & 0.6 \\
+  $H_{Rep}$ & 0.4 & 0 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:limmin}
+
+\end{margintable}
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.5} & 0.1 & 0.6 \\
+  $H_{Rep}$ & 0 & 0.4 & 0.4 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:limmax}
+\end{margintable}
+
+\section{What's so special about the top left corner?}
+
+In the examples we have until now started the calculation by putting a number in the top left corner of the table. But it is clear that we can start in any of the four corners. Once we have put in a number there, the rest follows\sidenote{This has to do with the fact that we have a system of four equations (two rows must give a given sum total, two colums must give a given sum total). These equations are however not independent. That is the reason that we get an infinite number of solutions. The system has one degree of freedom, which means we can only choose one corner freely, and then the rest is fixed.}.
+
+I don't know yet if the starting spot is important. I'm looking into it.
+
+\section{Why are the House and the Senate elections dependent?}
+It seems strange that the result of the Senate elections could be influenced by the results of the House elections (and vice versa), because people vote at the same time for House and Senate. However: polls can give a clear indication that things are very likely to move in a certain direction. And while polls are only what they are, and should be treated carefully, it is not unthinkable that voters who have the impression that e.g. the House is going to the Democrats, or that the Senate is more or less guaranteed for the Republicans, will take this into account. ''Taking it into account" can mean very many things:
 
 \begin{itemize}
   \item They will try to block the other party from controlling the Senate or the House.
@@ -332,22 +597,33 @@ Here things become interesting. It seems strange that the result of the Senate e
   \item ....
 \end{itemize}
 
-The Alabama election has shown that the Republicans suffered from a poor turnout, while the Democrats got their voters going. I believe that the positive effects (large turnout, enthousiasm) is more likely for the Democrats, while the negative effects (can't be bothered, not willing to vote for the other candidate after a preselection run) are more likely for the Republicans. Let's do an exercises:
+The Alabama election has shown that the Republicans suffered from a poor turnout, while the Democrats got their voters going. I believe that the positive effects (large turnout, enthousiasm) is more likely for the Democrats, while the negative effects (can't be bothered, not willing to vote for the other candidate after a preselection run) are more likely for the Republicans. Let's do an exercise:
 
-If it starts to look likely that the Democrats will win the House the probability rises from 0.6 to 0.8: $P[H_{Dem}]=0.8$. The probability of a Republica win falls to $P[H_{Rep}]=0.2$\\
-\emph{Given this probability}: what is the effect on the probabilities for the Senate?\\ 
-  At the moment they are 50/50. But if the ''Alabama-effect" switches on it could change the probabilities for both parties: $P[S_{Dem} | H_{Dem}]=0.6$ and $P[S_{Rep} | H_{Dem}]=0.4$. The notation $P[S_{Dem} | H_{Dem}]=0.6$ means ''the probability of the Senate going to the Democrats \emph{given that we know} that the House will be Democratic".\\ 
-The negative outlook for the House depresses the Republicans and that encourages the Democrats: $P[S_{Dem} | H_{Rep}]=0.6$ and $P[S_{Rep} | H_{Rep}]=0.4$.
-\newpage
-This gives the following results:
-\begin{itemize}
-  \item $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem} | H_{Dem}]*P[H_{Dem}]=0.6*0.8=0.48$
-  \item $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem} | H_{Rep}]*P[H_{Rep}]=0.6*0.2=0.12$
-  \item $P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep} | H_{Dem}]*P[H_{Dem}]=0.4*0.8=0.32$
-  \item $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep} | H_{Rep}]*P[H_{Rep}]=0.4*0.2=0.08$
-\end{itemize}
-\medskip
-There is a big margin of change! So I will look out for what the FiveThirtyEight and Cook websites indicate for the likely win in Senate and House + the results of elections in between (turnout for Republicans and Democrats) and the evolution of Trump's approval rate.
+If it starts to look likely that the Democrats will win the House it will influence the probability $P[H_{Dem}]$ which at the moment stands at 0.6. For example it could rise to 0.65: $P[H_{Dem}]=0.65$. The probability of a Republican win of the House then falls to $P[H_{Rep}]=0.35$\\
+
+Possibly this does not change the probabilities for the Senate. There are much more democratic senatorial seats up for election. There are more democratic senatorial seats marked as ''toss up". At the moment the outlook for the Senate is 50/50 and there is no real reason to change this.
+However: an improved outlook for winning the House could change the conditional probabilities. If the ''Alabama-effect" switches on it could change to''Likely" improve the chances of winning the Senate. The word ''Likely" translates in a LR+=1.4 which gives a $P[S_{Dem} | H_{Dem}]=0.722$. This would change the top left corner into 0.469 and give us Table~\ref{tab:improvedHouse}.
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.469} & 0.181 & 0.65 \\
+  $H_{Rep}$ & 0.031 & 0.319 & 0.35 \\
+  \hline
+  \hline
+  Sum & 0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:improvedHouse}
+\end{margintable}
+
+
+What is remarkable in these calculation is how delicate they are! For example: change $P[H_{Dem}]$ to 0.7 and the resulting table will become impossible because it contains a negative probability in the lower right corner. The ''infinite number" of solutions are not so infinite after all.
+
+So I will look out for what the FiveThirtyEight and Cook websites indicate for the likely win in Senate and House + the results of elections in between (turnout for Republicans and Democrats) and the evolution of Trump's approval rate.
 
 \chapter{Forecasts}
 
