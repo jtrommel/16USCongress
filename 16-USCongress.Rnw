@@ -396,7 +396,7 @@ We get another solution when we start this proces with the number 0.32 in the up
 
 \section{Conditional probabilities}
 
-\newthought{The beautiful thing} about conditional probabilities is that it can capture all possible solutions into one formula! The ''wonder"-formula is
+\newthought{The beautiful thing} about conditional probabilities is that it can capture all possible solutions into one formula! The ''wonder"-formula\sidenote{This is Bayes' theorem. A fascinating book on the subject is:''The theory that would not die" by Sharon Bertsch McGrayne} is
 \begin{equation}
   P[X \quad AND \quad Y]=P[Y]*P[X|Y]
 \label{eq:dependent}
@@ -637,5 +637,32 @@ So I will look out for what the FiveThirtyEight and Cook websites indicate for t
   \item No: $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.5*0.4=0.2$
 \end{itemize}
 
+\section{2018-01-13}
+
+An excellent analysis of the situation at this moment by Nate Silver (\url{https://fivethirtyeight.com/features/are-democrats-senate-chances-overrated/}) on the chances the Democrats have of winning the Senate. He puts the probability $P[S_{Dem}]$ between 35\% and 40\%. Keeping the probability that the Democrats win the House on 60\%, I get Table~\ref{tab:20180113}. I used an ''independent" cross calculation because Nate Silver has already taken into account some degree of dependency.
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & \textbf{0.225} & 0.375 & 0.60 \\
+  $H_{Rep}$ & 0.150 & 0.250 & 0.40 \\
+  \hline
+  \hline
+  Sum & 0.375 & 0.625 & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:20180113}
+\end{margintable}
+
+\textbf{Forecast 2}:
+\begin{itemize}
+  \item Yes, both chambers: $P[S_{Dem}$  AND  $H_{Dem}]=P[S_{Dem}]*P[H_{Dem}]=0.225$
+  \item Yes, the Senate, but not the House: $P[S_{Dem}$  AND  $H_{Rep}]=P[S_{Dem}]*P[H_{Rep}]=0.15$
+  \item Yes, the House, but not the Senate:$P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.375$
+  \item No: $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.25$
+\end{itemize}
 
 \end{document}
