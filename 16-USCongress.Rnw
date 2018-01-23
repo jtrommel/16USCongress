@@ -395,6 +395,7 @@ We get another solution when we start this proces with the number 0.32 in the up
 \end{margintable}
 
 \section{Conditional probabilities}
+\subsection{Bayes' Theorem}
 
 \newthought{The beautiful thing} about conditional probabilities is that it can capture all possible solutions into one formula! The ''wonder"-formula\sidenote{This is Bayes' theorem. A fascinating book on the subject is:''The theory that would not die" by Sharon Bertsch McGrayne} is
 \begin{equation}
@@ -423,6 +424,61 @@ When we apply the ''wonder"-fomula (\ref{eq:dependent}) in this situation we get
 \label{eq:noinfluenceHouse}
 \end{equation}
 These are exactly the formulas that we used \textbf{intuitively} in Table~\ref{tab:table1}. In other words: our intuition leads us to pick one of the infinite possible solutions. This solution is the one in which we consider that all events are \emph{independent} of each other. The moment we allow the possibility that the events could be \emph{dependent} of each other, we suddenly can access an infinite number of solutions. The question is: how do we express this interdependency into probabilities we can use to make calculations?
+
+\subsection{Limits to possible results}
+Let's take a short theoretical detour, that is not fixed on the problem of the US-elections. We consider two events ($A$ and $B$). The alternative for event $A$ we call $A^{C}$ (its complement). These two events, $A$ and $A^{C}$ are mutually exclusive. This means that if $A$ occurs, $A^{C}$ cannot occur. Idem for $B$ and $B^{C}$. If the probability that $A$ occurs is a\% than it follows that the probability for $A^{C}$ equal to (100 - a)\%. Combining the two events $A$ and $B$ and their complements we get the Tabel~\ref{tab:ABstart}.
+
+\begin{margintable}[-5cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $B$ & $B^{C}$ & Sum \\
+  \hline
+  \hline
+  $A$ &  &  & a \\
+  $A^{C}$ &  &  & 1-a \\
+  \hline
+  \hline
+  Sum &b & 1-b & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:ABstart}
+\end{margintable}
+
+The ''intuitive" solution is Table~\ref{tab:ABintuitive}.
+
+\begin{margintable}[-2cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $B$ & $B^{C}$ & Sum \\
+  \hline
+  \hline
+  $A$ & $a*b$ & $a*(1-b)$  & a \\
+  $A^{C}$ & $(1-a)*b$ & $(1-a)*(1-b)$  & 1-a \\
+  \hline
+  \hline
+  Sum &b & 1-b & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:ABintuitive}
+\end{margintable}
+
+As we have seen the alternative solutions depend on the conditinal probabilies such as $P[A|B]$ or $P[A^{C}|B^{C}]$ and so on. These probabilities cannot take on any value: the maximum value is always 1. For example: let's suppose that event A is completely dependent on event B. This means that if B occurs, A will always occur. Symbolically: $P[A|B]=1$. In that case $P[A|B^{C}]=0$. This also means that $P[A \quad AND \quad B^{C}] = P[B^{C}]*P[A|B^{C}]=0$. This means the left bottom corner of Table~\ref{tab:AB1} is zero (0) and from there the rest of the tabel follows. Because all probabilities must be $\geq 0$ this table is only mathematically possible on condition that $(a-b)\geq 0$, or $a \geq b$.
+
+\begin{margintable}[-2cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $B$ & $B^{C}$ & Sum \\
+  \hline
+  \hline
+  $A$ & $b$ & $(a-b)$  & a \\
+  $A^{C}$ & $0$ & $(1-a)$  & 1-a \\
+  \hline
+  \hline
+  Sum &b & 1-b & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:AB1}
+\end{margintable}
 
 \section{The Likelihood Ratio}
 \label{sec:LR}
