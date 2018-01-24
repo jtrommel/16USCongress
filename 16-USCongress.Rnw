@@ -395,6 +395,7 @@ We get another solution when we start this proces with the number 0.32 in the up
 \end{margintable}
 
 \section{Conditional probabilities}
+\label{sec:conditional_prob}
 \subsection{Bayes' Theorem}
 
 \newthought{The beautiful thing} about conditional probabilities is that it can capture all possible solutions into one formula! The ''wonder"-formula\sidenote{This is Bayes' theorem. A fascinating book on the subject is:''The theory that would not die" by Sharon Bertsch McGrayne} is
@@ -426,6 +427,7 @@ When we apply the ''wonder"-fomula (\ref{eq:dependent}) in this situation we get
 These are exactly the formulas that we used \textbf{intuitively} in Table~\ref{tab:table1}. In other words: our intuition leads us to pick one of the infinite possible solutions. This solution is the one in which we consider that all events are \emph{independent} of each other. The moment we allow the possibility that the events could be \emph{dependent} of each other, we suddenly can access an infinite number of solutions. The question is: how do we express this interdependency into probabilities we can use to make calculations?
 
 \subsection{Limits to possible results}
+\label{subsec:limits}
 Let's take a short theoretical detour, that is not fixed on the problem of the US-elections. We consider two events ($A$ and $B$). The alternative for event $A$ we call $A^{C}$ (its complement). These two events, $A$ and $A^{C}$ are mutually exclusive. This means that if $A$ occurs, $A^{C}$ cannot occur. Idem for $B$ and $B^{C}$. If the probability that $A$ occurs is a\% than it follows that the probability for $A^{C}$ equal to (100 - a)\%. Combining the two events $A$ and $B$ and their complements we get the Tabel~\ref{tab:ABstart}.
 
 \begin{margintable}[-5cm]
@@ -478,6 +480,107 @@ As we have seen the alternative solutions depend on the conditinal probabilies s
 \end{tabular}
 \caption{ }
 \label{tab:AB1}
+\end{margintable}
+
+We started to fill out Table~\ref{tab:AB1} with a ''0" in the left bottom corner. We got this result because $P[A \quad AND \quad B^{C}] = P[B^{C}]*P[A|B^{C}]$ and $P[A|B^{C}]=0$. We will get the same result for $P[B^{C} \quad AND \quad A] = P[A]*P[B^{C}|A]$ and $P[B^{C}|A]=0$. Now $P[B^{C}|A]=0$ implies that $P[B^{C}|A^{C}]=1$. Full depencency between $B^{C}$ and $A^{C}$ gives the same table and thus the same condition namely that $(a-b)\geq 0$, or $a \geq b$.
+
+When we do this analysis for all completely dependent situations we get the following result:
+
+\begin{enumerate}
+  \item $P[A|B]=1$ or $P[B^{C}|A^{C}]=1$ can only occur if $a \geq b$
+  \item $P[A|B^{C}]=1$ or $P[B|A^{C}]=1$ can only occur if $(a+b) \geq 1$
+  \item $P[A^{C}|B]=1$ or $P[B^{C}|A]=1$ can only occur if $(a+b) \leq 1$
+  \item $P[A^{C}|B^{C}]=1$ or $P[B|A]=1$ can only occur if $b \geq a$
+\end{enumerate}
+
+We can see that some of these conditions are mutually exclusive: you cannot have at the same time that $a \geq b$ and $a \leq b$ or that $(a+b) \geq 1$ and $(a+b) \leq 1$. That means that in every situation there are only two tables possible.
+
+An example: if event $A$ is ''Democrats win the House" or symbolically $H_{Dem}$, then event $A^{C}$ is "Republicans win the House" or $H_{Rep}$. Event $B$ is then $S_{Dem}$ and $B^{C}$ is $S_{Rep}$.\sidenote{We ignore the possibility of independent candidates or sudden switches in allegiance.} Sticking to the probablities we have used thus far we get Table~\ref{tab:ABexample}.
+
+\begin{margintable}[-7cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $B=S_{D}$ & $B^{C}=S_{R}$ & Sum \\
+  \hline
+  \hline
+  $A=H_{D}$ &  &   & $a=0.6$ \\
+  $A^{C}=H_{R}$ &  &  & $(1-a)=0.4$ \\
+  \hline
+  \hline
+  Sum &$b=0.5$ & $(1-b)=0.5$ & 1 \\
+\end{tabular}
+\caption{ }
+\label{tab:ABexample}
+\end{margintable}
+
+We can see that $a=0.6 > b=0.4$ and that $(a+b)=1.1 > 1$. This means that when there is \emph{maximum dependency} there are only two tables possible: one with $P[A|B]=1$ or $P[B^{C}|A^{C}]=1$ and the other with $P[A|B^{C}]=1$ or $P[B|A^{C}]=1$. These two tables are given by Table~\ref{tab:ABexample1} and Table~\ref{tab:ABexample2}. All others are mathematically impossible because they will contain negative probabilities. When we add the ''intuitive" solution, where there is \emph{no dependency} (Table~\ref{tab:ABindependent}) we see that it lies neatly in the middle. This means that Table~\ref{tab:ABexample1} gives us the maximum \emph{upward} effect of dependency, while Table~\ref{tab:ABexample2} gives the maximum \emph{downward} effect of dependency.
+
+\begin{margintable}[-4cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.5 & 0.1  & 0.6 \\
+  $H_{Rep}$ & 0 & 0.4 & 0.4 \\
+  \hline
+  \hline
+  Sum &0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{100\% dependent (upward)}
+\label{tab:ABexample1}
+\end{margintable}
+
+\begin{margintable}[-1cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.1 & 0.5  & 0.6 \\
+  $H_{Rep}$ & 0.4 & 0 & 0.4 \\
+  \hline
+  \hline
+  Sum &0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{100\% dependent (downward)}
+\label{tab:ABexample2}
+\end{margintable}
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.3 & 0.3  & 0.6 \\
+  $H_{Rep}$ & 0.2 & 0.2 & 0.4 \\
+  \hline
+  \hline
+  Sum &0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{Independent }
+\label{tab:ABindependent}
+\end{margintable}
+
+\subsection{Partial dependency}
+\label{subsec:partial_dependy}
+After the mathematics: let's interpret the formulas and introduce some common sense. We started Table~\ref{tab:ABexample1} with the assumption that $P[A|B]=1$, or in this example $P[H_{Dem}|S_{Dem}]=1$. In words this means that ''If the Democrats win the Senate, it is a sure thing that they will win the House". This seems a reasonable assumption, although an exagerated one. There is probably an \emph{ upward dependency} but it is not with 100\%. Let's say there is a \emph{partial} upward dependency of 50\%. Then the value in the upper left corner of the table will be halfway between ''independent" (0.3) and ''maximum upward dependency" (0.5). This is 0.4. Our forecast with a 50\% dependency is than given by Table~\ref{tab:ABpartdep50}.
+
+\begin{margintable}[-2cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.4 & 0.2  & 0.6 \\
+  $H_{Rep}$ & 0.1 & 0.3 & 0.4 \\
+  \hline
+  \hline
+  Sum &0.5 & 0.5 & 1 \\
+\end{tabular}
+\caption{Partial dependency (50\% up)}
+\label{tab:ABpartdep50}
 \end{margintable}
 
 \section{The Likelihood Ratio}
@@ -694,8 +797,9 @@ So I will look out for what the FiveThirtyEight and Cook websites indicate for t
 \end{itemize}
 
 \section{2018-01-13}
+\label{sec:Forecast2}
 
-An excellent analysis of the situation at this moment by Nate Silver (\url{https://fivethirtyeight.com/features/are-democrats-senate-chances-overrated/}) on the chances the Democrats have of winning the Senate. He puts the probability $P[S_{Dem}]$ between 35\% and 40\%. Keeping the probability that the Democrats win the House on 60\%, I get Table~\ref{tab:20180113}. I used an ''independent" cross calculation because Nate Silver has already taken into account some degree of dependency.
+An excellent analysis of the situation at this moment by Nate Silver (\url{https://fivethirtyeight.com/features/are-democrats-senate-chances-overrated/}) on the chances the Democrats have of winning the Senate. He puts the probability $P[S_{Dem}]$ between 35\% and 40\%. Keeping the probability that the Democrats win the House on 60\%, I get Table~\ref{tab:Forecast2}. I used an ''independent" cross calculation because Nate Silver has already taken into account some degree of dependency.
 
 \begin{margintable}[0cm]
 \centering
@@ -710,7 +814,7 @@ An excellent analysis of the situation at this moment by Nate Silver (\url{https
   Sum & 0.375 & 0.625 & 1 \\
 \end{tabular}
 \caption{ }
-\label{tab:20180113}
+\label{tab:Forecast2}
 \end{margintable}
 
 \textbf{Forecast 2}:
@@ -720,5 +824,88 @@ An excellent analysis of the situation at this moment by Nate Silver (\url{https
   \item Yes, the House, but not the Senate:$P[S_{Rep}$  AND  $H_{Dem}]=P[S_{Rep}]*P[H_{Dem}]=0.375$
   \item No: $P[S_{Rep}$  AND  $H_{Rep}]=P[S_{Rep}]*P[H_{Rep}]=0.25$
 \end{itemize}
+
+\section{2018-01-24}
+\label{sec:Forecast3}
+After further development of section \ref{sec:conditional_prob} on ''Conditional Probabilities", we can now use the idea of \emph{partial dependency}. Let's start with the probabilities based on the article by Nate Silver cited in section \ref{sec:Forecast2}, and from these calculate the ''completely independent" scenario  (Table~\ref{tab:Forecast3a}).
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.225 & 0.375 & $a=0.60$ \\
+  $H_{Rep}$ & 0.150 & 0.250 & $(1-a)=0.40$ \\
+  \hline
+  \hline
+  Sum & $b=0.375$ & $(1-b)=0.625$ & 1 \\
+\end{tabular}
+\caption{Forecast 3: independent solution}
+\label{tab:Forecast3a}
+\end{margintable}
+
+We can see that $a > b$ and $(a+b)>1$. From \ref{subsec:limits} it follows that only two completely dependent solutions are mathematically possible: $P[H_{Dem}|S_{Dem}]=1$ and $P[H_{Rep}|S_{Dem}]=1$. These assumptions lead to one ''upward" table (Table~\ref{tab:Forecast3b}) and one ''downward" table (Table~\ref{tab:Forecast3c}).
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.375 & 0.225 & 0.600 \\
+  $H_{Rep}$ & 0.000 & 0.400 & 0.400 \\
+  \hline
+  \hline
+  Sum & 0.375 & 0.625 & 1 \\
+\end{tabular}
+\caption{Forecast 3: 100\% upward dependent solution}
+\label{tab:Forecast3b}
+\end{margintable}
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.000 & 0.600 & 0.600 \\
+  $H_{Rep}$ & 0.375 & 0.025 & 0.400 \\
+  \hline
+  \hline
+  Sum & 0.375 & 0.625 & 1 \\
+\end{tabular}
+\caption{Forecast 3: 100\% downward dependent solution}
+\label{tab:Forecast3c}
+\end{margintable}
+
+Assuming an \emph{upward partial dependency} between $S_{Dem}$ and $H_{Dem}$ of 30\%, the value in the top left corner will be $0.225 + 0.3*(0.375 - 0.225)=0.27$. This gives us Tabel~\ref{tab:Forecast3d}.
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 0.270 & 0.330 & 0.600 \\
+  $H_{Rep}$ & 0.105 & 0.295 & 0.400 \\
+  \hline
+  \hline
+  Sum & 0.375 & 0.625 & 1 \\
+\end{tabular}
+\caption{Forecast 3: 30\% upward dependent solution}
+\label{tab:Forecast3d}
+\end{margintable}
+
+In essence we only need to know three numbers:
+
+\begin{enumerate}
+  \item $P[H_{Dem}]$
+  \item $P[S_{Dem}]$
+  \item percentage of dependency
+\end{enumerate}
+
+All the rest follow from these three.
+
 
 \end{document}
