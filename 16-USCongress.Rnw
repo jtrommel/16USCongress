@@ -826,8 +826,8 @@ An excellent analysis of the situation at this moment by Nate Silver (\url{https
 \end{itemize}
 
 \section{2018-01-24}
-\label{sec:Forecast3}
-After further development of section \ref{sec:conditional_prob} on ''Conditional Probabilities", we can now use the idea of \emph{partial dependency}. Let's start with the probabilities based on the article by Nate Silver cited in section \ref{sec:Forecast2}, and from these calculate the ''completely independent" scenario  (Table~\ref{tab:Forecast3a}).
+\label{sec:using_cond_prob}
+After further development of section \ref{sec:conditional_prob} on ''Conditional Probabilities", we can now use the idea of \emph{partial dependency}. Let's start with the probabilities based on the article by Nate Silver cited in section \ref{sec:Forecast2}, and from these calculate the ''completely independent" scenario  (Table~\ref{tab:using_cond_proba}).
 
 \begin{margintable}[0cm]
 \centering
@@ -842,10 +842,10 @@ After further development of section \ref{sec:conditional_prob} on ''Conditional
   Sum & $b=0.375$ & $(1-b)=0.625$ & 1 \\
 \end{tabular}
 \caption{Forecast 3: independent solution}
-\label{tab:Forecast3a}
+\label{tab:using_cond_proba}
 \end{margintable}
 
-We can see that $a > b$ and $(a+b)>1$. From \ref{subsec:limits} it follows that only two completely dependent solutions are mathematically possible: $P[H_{Dem}|S_{Dem}]=1$ and $P[H_{Rep}|S_{Dem}]=1$. These assumptions lead to one ''upward" table (Table~\ref{tab:Forecast3b}) and one ''downward" table (Table~\ref{tab:Forecast3c}).
+We can see that $a > b$ and $(a+b)>1$. From \ref{subsec:limits} it follows that only two completely dependent solutions are mathematically possible: $P[H_{Dem}|S_{Dem}]=1$ and $P[H_{Rep}|S_{Dem}]=1$. These assumptions lead to one ''upward" table (Table~\ref{tab:using_cond_probb}) and one ''downward" table (Table~\ref{tab:using_cond_probc}).
 
 \begin{margintable}[0cm]
 \centering
@@ -860,7 +860,7 @@ We can see that $a > b$ and $(a+b)>1$. From \ref{subsec:limits} it follows that 
   Sum & 0.375 & 0.625 & 1 \\
 \end{tabular}
 \caption{Forecast 3: 100\% upward dependent solution}
-\label{tab:Forecast3b}
+\label{tab:using_cond_probb}
 \end{margintable}
 
 \begin{margintable}[0cm]
@@ -876,10 +876,10 @@ We can see that $a > b$ and $(a+b)>1$. From \ref{subsec:limits} it follows that 
   Sum & 0.375 & 0.625 & 1 \\
 \end{tabular}
 \caption{Forecast 3: 100\% downward dependent solution}
-\label{tab:Forecast3c}
+\label{tab:using_cond_probc}
 \end{margintable}
 
-Assuming an \emph{upward partial dependency} between $S_{Dem}$ and $H_{Dem}$ of 30\%, the value in the top left corner will be $0.225 + 0.3*(0.375 - 0.225)=0.27$. This gives us Tabel~\ref{tab:Forecast3d}.
+Assuming an \emph{upward partial dependency} between $S_{Dem}$ and $H_{Dem}$ of 30\%, the value in the top left corner will be $0.225 + 0.3*(0.375 - 0.225)=0.27$. This gives us Tabel~\ref{tab:using_cond_probd}.
 
 \begin{margintable}[0cm]
 \centering
@@ -894,7 +894,7 @@ Assuming an \emph{upward partial dependency} between $S_{Dem}$ and $H_{Dem}$ of 
   Sum & 0.375 & 0.625 & 1 \\
 \end{tabular}
 \caption{Forecast 3: 30\% upward dependent solution}
-\label{tab:Forecast3d}
+\label{tab:using_cond_probd}
 \end{margintable}
 
 In essence we only need to know three numbers:
@@ -906,6 +906,6 @@ In essence we only need to know three numbers:
 \end{enumerate}
 
 All the rest follow from these three.
-
+Not yet ready for a new Forecast.
 
 \end{document}
