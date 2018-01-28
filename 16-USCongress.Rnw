@@ -91,6 +91,7 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
 \chapter{Will the Democrats gain control of Congress in the 2018 midterm elections?}
 
 \section{The Senate}
+\subsection{A summary of the situation}
 
 \newthought{The situation} is as follows\sidenote{This situation evolves: Cook gives ''a toss up" for 4 Democratic states and for 3 Republican states}:\\
 \medskip
@@ -117,6 +118,15 @@ The Democrats have a lot of work to do in order to gain the Senate:
 \end{itemize}
 
 For the Senate I follow Nate Silver\sidenote{https://fivethirtyeight.com/features/do-democrats-need-to-win-in-alabama-to-take-the-senate-in-2018/} who put the probability that the Democrats win the Senate to 0.5 \emph{if the Democrats would win Alabama.} And they did! So $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$.
+
+\subsection{A detailed approach}
+The Senate seems to be the hardest to win for the Democrats. Nate Silver suggested a more detailed method to calculate the probabilities of a win (or loss). Let's put his data in a dataframe.
+
+<<echo=FALSE>>=
+Senate <- data.frame(State=c("Mississippi","Nebraska","Utah","Wyoming","Texas","Tennessee","Arizona","Indiana","Missouri","Nevada","West Virginia","Florida","North Dakota","Minnesota","Montana","Wisconson","Ohio","Pennsylvania","Maine","Michigan","New Jersey","Virginia","California","Connecticut","Delaware","Hawaii","Maryland","Massachusetts","Minnesota","New Mexico","New York","Rhode Island","Vermont","Washington"), Incumbent=c("Wicker","Fischer", NA,"Barasso","Cruz",NA,NA,"Donelly","McCaskill","Heller","Manchin","Nelson","Heitkamp",NA, "Tester","Baldwin","Brown","Casey","King","Stabenow","Menendez","Kaine","Feinstein","Murphy","Carper","Hirono","Cardin","Warren","Klobuchar","Heinrich","Gillibrand","Whitehouse","Sanders","Cantwell"), Party=c(rep("R",7),rep("D",2),"R",rep("D",24)), Cook=c(rep("Safe R",5),rep("Toss up",6),rep("Lean D",2),"Toss up",rep("Likely D",2),"Lean D","Likely D","Lean D",rep("Likely D",2),rep("Safe D",13)), InsideElections=c(rep("Safe R",5),"Likely R",rep("Toss up",5),"Tilt D","Toss up","Likely D",rep("Tilt D",2),rep("Lean D",2),rep("Safe D",16)),Sabato=c(rep("Safe R",4),rep("Likely R",2),rep("Toss up",4),"Lean D","Toss up",rep("Lean D",5),rep("Likely D",5),rep("Safe D",12)))
+@
+
+
 \newpage
 \section{The House}
 \subsection{Influence of the president's approval rate}
@@ -907,5 +917,6 @@ In essence we only need to know three numbers:
 
 All the rest follow from these three.
 Not yet ready for a new Forecast.
+
 
 \end{document}
