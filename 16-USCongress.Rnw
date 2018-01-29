@@ -89,15 +89,15 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
 % Functions
 % Function to translate qualifications to probabilities
 <<echo=FALSE>>=
-JT.ProbCalc <- function(JT.df) {
+JT.ProbCalc <- function(JT.df,scores) {
   colnames(JT.df) <- c("Party","Rater")
   prob <- numeric(nrow(JT.df))
   for (i in 1:nrow(JT.df)) {
-    if (grepl("Safe", JT.df$Rater[i])) {prob[i] <- 0.95}
-    if (grepl("Like", JT.df$Rater[i])) {prob[i] <- 0.85}
-    if (grepl("Lean", JT.df$Rater[i])) {prob[i] <- 0.75}
-    if (grepl("Tilt", JT.df$Rater[i])) {prob[i] <- 0.60}
-    if (grepl("Toss", JT.df$Rater[i])) {prob[i] <- 0.5}
+    if (grepl("Safe", JT.df$Rater[i])) {prob[i] <- scores[1]}
+    if (grepl("Like", JT.df$Rater[i])) {prob[i] <- scores[2]}
+    if (grepl("Lean", JT.df$Rater[i])) {prob[i] <- scores[3]}
+    if (grepl("Tilt", JT.df$Rater[i])) {prob[i] <- scores[4]}
+    if (grepl("Toss", JT.df$Rater[i])) {prob[i] <- scores[5]}
     if(JT.df$Party[i] == "R") {prob[i] <- 1 - prob[i]}
   }
   return(prob)
@@ -138,42 +138,51 @@ The Democrats have a lot of work to do in order to gain the Senate. They need 2 
 For the Senate I follow Nate Silver\sidenote{https://fivethirtyeight.com/features/do-democrats-need-to-win-in-alabama-to-take-the-senate-in-2018/} who put the probability that the Democrats win the Senate to 0.5 \emph{if the Democrats would win Alabama.} And they did! So $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$.
 
 \subsection{A detailed approach}
-The Senate seems to be the hardest to win for the Democrats. Nate Silver suggested a more detailed method to calculate the probabilities of a win (or loss). The result of a simulation based on the interpretation by Nate Silver of the probabilities of ''Safe"=0.95, ''Likely"=0.85, ''Lean"=0.75, ''Tilt"=0.60 (not included in the article) and ''Toss up"=0.50 is (Figure~\ref{fig:senatesim}) is that the Democrats are likely to \emph{lose} 3 seats. Gaining 2 seems very unlikely!
+\newthought{The micro view: the State level}.
+The Senate seems to be the hardest to win for the Democrats. Nate Silver suggested a more detailed method to calculate the probabilities of a win (or loss) \emph{on the State level}. The result of a simulation (N=10.000) based on the interpretation by Nate Silver of the probabilities of ''Safe"=0.95, ''Likely"=0.85, ''Lean"=0.75, ''Tilt"=0.60 (not included in the article) and ''Toss up"=0.50 is (Figure~\ref{fig:senatesim}) is that the Democrats are likely to \emph{lose} 3 seats. Gaining 2 seems very unlikely!
 
 <<echo=FALSE>>=
 Senate <- data.frame(State=c("Mississippi","Nebraska","Utah","Wyoming","Texas","Tennessee","Arizona","Indiana","Missouri","Nevada","West Virginia","Florida","North Dakota","Minnesota","Montana","Wisconson","Ohio","Pennsylvania","Maine","Michigan","New Jersey","Virginia","California","Connecticut","Delaware","Hawaii","Maryland","Massachusetts","Minnesota","New Mexico","New York","Rhode Island","Vermont","Washington"), Incumbent=c("Wicker","Fischer", NA,"Barasso","Cruz",NA,NA,"Donelly","McCaskill","Heller","Manchin","Nelson","Heitkamp",NA, "Tester","Baldwin","Brown","Casey","King","Stabenow","Menendez","Kaine","Feinstein","Murphy","Carper","Hirono","Cardin","Warren","Klobuchar","Heinrich","Gillibrand","Whitehouse","Sanders","Cantwell"), Party=c(rep("R",7),rep("D",2),"R",rep("D",24)), Cook=c(rep("Safe R",5),rep("Toss up",6),rep("Lean D",2),"Toss up",rep("Likely D",2),"Lean D","Likely D","Lean D",rep("Likely D",2),rep("Safe D",13)), InsideElections=c(rep("Safe R",5),"Likely R",rep("Toss up",5),"Tilt D","Toss up","Likely D",rep("Tilt D",2),rep("Lean D",2),rep("Safe D",16)),Sabato=c(rep("Safe R",4),rep("Likely R",2),rep("Toss up",4),"Lean D","Toss up",rep("Lean D",5),rep("Likely D",5),rep("Safe D",12)))
 Senate %>% select(Party, Cook) -> JT.Cook
 Senate %>% select(Party, InsideElections) -> JT.InsideElections
 Senate %>% select(Party, Sabato) -> JT.Sabato
-Senate$DemProb <- (JT.ProbCalc(JT.Cook) + JT.ProbCalc(JT.InsideElections) + JT.ProbCalc(JT.Sabato))/3
+scores <- c(0.95, 0.85, 0.75, 0.6, 0.5)
+Senate$DemProb <- (JT.ProbCalc(JT.Cook, scores) + JT.ProbCalc(JT.InsideElections, scores) + JT.ProbCalc(JT.Sabato, scores))/3
 # Simulation
 # Number of simulations
-N <- 1000
+N <- 10000
 race <- matrix(0, N, nrow(Senate))
 set.seed(2018)
 for (i in 1:nrow(Senate)) {
     race[,i] <- rbinom(N, 1, Senate$DemProb[i])
 }
 race.result <- rowSums(race)
+prob <- sum(race.result > 27)/N
+@
+
+<<>>=
+print(paste("Probability of 28 or more seats = ",
+            round(prob,2), "%"))
 @
 
 <<label=senatesim,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
   aes(race.result) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="23 seats = loss of 3!", subtitle="Winning 28 seats is very unlikely") +
+  labs(title="23 seats = loss of 3!", subtitle="Winning 28 seats is very unlikely", x="Number of Democratic seats") +
   scale_x_discrete(limits=min(race.result):max(race.result), labels = c(min(race.result):max(race.result))) +
   JT.theme
 @
 
-\begin{marginfigure}
+\begin{marginfigure}[-2cm]
 \includegraphics[width=1\textwidth]{USC-senatesim}
 \caption{Histogram of simulation}
 \label{fig:senatesim}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-However: these calculations are based on the assumption that all these races are \emph{indepent}. In reality this is not the case, and the outcomes are \emph{correlated}. The correlation can go from 0 (independent = Figure~\ref{fig:senatesim}) to 1. The value of 1 is the situation in which when you win one ''toss-up", you win them all\sidenote{I assume that this tweeking is performed on all races where at least one of the raters uses the term ''Toss-up"}. When you tweek the simulation for maximum correlation, you get Figure~\ref{fig:senatesimmax}.
+\newthought{The macro view: taking correlation into account.}
+However: these calculations are based on the assumption that all these races are \emph{independent}. In reality this is not the case, and the outcomes are \emph{correlated}. The correlation can go from 0 (independent = Figure~\ref{fig:senatesim}) to 1. The value of 1 is the situation in which when you win one ''toss-up", you win them all\sidenote{I assume that this tweeking is performed on all races where at least one of the raters uses the term ''Toss-up"}. When you tweek the simulation for maximum correlation, you get Figure~\ref{fig:senatesimmax}.
 <<echo=FALSE>>=
 # Simulation with maximum correlation
 race.max <- race
@@ -181,13 +190,19 @@ for (i in 1:N) {
   if(sum(race.max[i,6:14] >= 1)) {race.max[i,6:14] <- 1}
 }
 race.result.max <- rowSums(race.max)
+prob.max <- sum(race.result.max > 27)/N
+@
+
+<<>>=
+print(paste("Probability of 28 or more seats = ",
+            round(100*prob.max,2), "%"))
 @
 
 <<label=senatesimmax,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
   aes(race.result.max) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="Simulation with maximum correlation", subtitle="About 50% chance of winning the Senate") +
+  labs(title="Simulation with maximum correlation", subtitle="About 50% chance of winning the Senate", x="Number of Democratic seats") +
   scale_x_discrete(limits=min(race.result.max):max(race.result.max), labels = c(min(race.result.max):max(race.result.max))) +
   JT.theme
 @
@@ -198,6 +213,49 @@ ggplot() +
 \label{fig:senatesimmax}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
+
+The probability that the Democrats win the Senate rises to \Sexpr{round(100*prob.max,2)} \%\sidenote{Nate Silvers has it on 50\%}. The truth will be somewhere between the two extremes: \Sexpr{round(100*prob,2)} and \Sexpr{round(100*prob.max,2)}.
+
+We can adjust the correlation. Nate Silver suggests a rule of thumb: 50\% is local and 50\% depends on supra-national factors (the correlation). 
+
+<<echo=FALSE>>=
+# Simulation with 50% correlation
+race.part <- race
+for (i in 1:N) {
+  if(sum(race.part[i,6:14] >= 1)) {
+    for (j in 6:14) {
+      if(race.part[i,j] == 0) {race.part[i,j] <- 0.5}
+    }
+  }
+}
+race.result.part <- rowSums(race.part)
+prob.part <- sum(race.result.part > 27)/N
+@
+
+<<>>=
+print(paste("Probability of 28 or more seats = ",
+            round(100*prob.part,2), "%"))
+@
+
+<<label=senatesimpart,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.result.part) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Simulation with 50% correlation", x="Number of Democratic seats") +
+  scale_x_discrete(limits=min(race.result.part):max(race.result.part), labels = c(min(race.result.part):max(race.result.part))) +
+  JT.theme
+@
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{USC-senatesimpart}
+\caption{Histogram of simulation with 50\% correlation}
+\label{fig:senatesimpart}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+
+
+Another approach is to include the supra-national effects into the probabilities that we assign to the labels ''Safe", ''Likely", etc.
 
 \newpage
 \section{The House}
