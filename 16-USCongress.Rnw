@@ -86,6 +86,22 @@ JT.theme <- theme(panel.border = element_rect(fill = NA, colour = "gray10"),
                   legend.key = element_rect(fill = "white"))
 @
 
+% Functions
+% Function to translate qualifications to probabilities
+<<echo=FALSE>>=
+JT.ProbCalc <- function(JT.vec) {
+  prob <- numeric(length(JT.vec))
+  for (i in 1:length(JT.vec)) {
+    if (grepl("Safe", JT.vec[i])) {prob[i] <- 0.95}
+    if (grepl("Like", JT.vec[i])) {prob[i] <- 0.85}
+    if (grepl("Lean", JT.vec[i])) {prob[i] <- 0.75}
+    if (grepl("Tilt", JT.vec[i])) {prob[i] <- 0.60}
+    if (grepl("Toss", JT.vec[i])) {prob[i] <- 0.5}
+  }
+  return(prob)
+}
+@
+
 \mainmatter
 
 \chapter{Will the Democrats gain control of Congress in the 2018 midterm elections?}
@@ -124,6 +140,10 @@ The Senate seems to be the hardest to win for the Democrats. Nate Silver suggest
 
 <<echo=FALSE>>=
 Senate <- data.frame(State=c("Mississippi","Nebraska","Utah","Wyoming","Texas","Tennessee","Arizona","Indiana","Missouri","Nevada","West Virginia","Florida","North Dakota","Minnesota","Montana","Wisconson","Ohio","Pennsylvania","Maine","Michigan","New Jersey","Virginia","California","Connecticut","Delaware","Hawaii","Maryland","Massachusetts","Minnesota","New Mexico","New York","Rhode Island","Vermont","Washington"), Incumbent=c("Wicker","Fischer", NA,"Barasso","Cruz",NA,NA,"Donelly","McCaskill","Heller","Manchin","Nelson","Heitkamp",NA, "Tester","Baldwin","Brown","Casey","King","Stabenow","Menendez","Kaine","Feinstein","Murphy","Carper","Hirono","Cardin","Warren","Klobuchar","Heinrich","Gillibrand","Whitehouse","Sanders","Cantwell"), Party=c(rep("R",7),rep("D",2),"R",rep("D",24)), Cook=c(rep("Safe R",5),rep("Toss up",6),rep("Lean D",2),"Toss up",rep("Likely D",2),"Lean D","Likely D","Lean D",rep("Likely D",2),rep("Safe D",13)), InsideElections=c(rep("Safe R",5),"Likely R",rep("Toss up",5),"Tilt D","Toss up","Likely D",rep("Tilt D",2),rep("Lean D",2),rep("Safe D",16)),Sabato=c(rep("Safe R",4),rep("Likely R",2),rep("Toss up",4),"Lean D","Toss up",rep("Lean D",5),rep("Likely D",5),rep("Safe D",12)))
+Senate$DemProb <- (JT.ProbCalc(Senate$Cook) + JT.ProbCalc(Senate$InsideElections) + JT.ProbCalc(Senate$Sabato))/3
+for (i in (1:nrow(Senate))) {
+  if (Senate$Party[i] == "R") {Senate$DemProb[i] <- 1 - Senate$DemProb[i]}
+}
 @
 
 
