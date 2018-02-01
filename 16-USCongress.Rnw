@@ -109,6 +109,7 @@ JT.ProbCalc <- function(JT.df,scores) {
 \chapter{Will the Democrats gain control of Congress in the 2018 midterm elections?}
 
 \section{The Senate}
+\label{sec:thesenategeneral}
 \subsection{A summary of the situation}
 
 \newthought{The situation} is as follows\sidenote{This situation evolves: Cook gives ''a toss up" for 4 Democratic states and for 3 Republican states}:\\
@@ -1046,7 +1047,41 @@ In essence we only need to know three numbers:
 \end{enumerate}
 
 All the rest follow from these three.
+
 Not yet ready for a new Forecast.
+
+\section{2018-02-01}
+
+Gallup  presented the poll results of the approval/disapproval rate for Trump by state\sidenote{\url{http://news.gallup.com/poll/226454/trump-approval-highest-west-virginia-lowest-vermont.aspx?utm_source=alert&utm_medium=email&utm_content=morelink&utm_campaign=syndication}}. When use only those states where there will be elections for the Senate, we get the following graph of the relation between the perceived probability of a democratic win (\ref{sec:thesenategeneral}) and the approval rate for Trump, by state.
+
+<<label=approval,fig=TRUE,include=FALSE, echo=FALSE>>=
+Senate$Approve <- c(48, 49, 48, 57, 39, 50, 41, 44, 47, 42, 61,41,57,37,52,41,45,42,42,40,34,37,29,31,36,29,30,27,37,35,30,32,26,34)
+Senate$Disapprove <- c(46,47,47,36,54,44,53,51,48,53,35,53,39,58,45,55,50,53,55,55,61,57,65,63,58,60,65,68,58,59,63,62,69,60)
+ggplot(data=Senate) +
+  geom_point(aes(x=Approve, y=DemProb, color=Party)) +
+  labs(title="Rising approval rate means\nless chance for a Democratic win", subtitle="Republican incumbency lowers the chances even further", x="Approval rate Trump", y="Probability of Democratic win", caption="http://news.gallup.com/poll/226454") +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-approval}
+\caption{}
+\label{fig:approval}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+There are a few odd ones:
+
+\begin{itemize}
+  \item Indiana and Missouri for the Democrats. These seem to be a little low.
+  \item Arizona and Nevada for the Republicans. These seem to be a little high.
+  \item Mississippi and Nebraska for the Republicans. These seem to be very low.
+\end{itemize}
+
+\subsection{Indiana}
+\subsection{Missouri}
+Probably McCaskill vs. Hawley. The latest poll (jan 8-9 2018) gives McCaskill a slight advantage (48/45). A ''Toss-up" still seems to be the right interpretation.
+
 
 
 \end{document}
