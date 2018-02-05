@@ -1052,11 +1052,14 @@ Not yet ready for a new Forecast.
 
 \section{2018-02-01}
 
-Gallup  presented the poll results of the approval/disapproval rate for Trump by state\sidenote{\url{http://news.gallup.com/poll/226454/trump-approval-highest-west-virginia-lowest-vermont.aspx?utm_source=alert&utm_medium=email&utm_content=morelink&utm_campaign=syndication}}. When use only those states where there will be elections for the Senate, we get the following graph of the relation between the perceived probability of a democratic win (\ref{sec:thesenategeneral}) and the approval rate for Trump, by state.
+Gallup  presented the poll results of the approval/disapproval rate for Trump by state\sidenote{\url{http://news.gallup.com/poll/226454/trump-approval-highest-west-virginia-lowest-vermont.aspx?utm_source=alert&utm_medium=email&utm_content=morelink&utm_campaign=syndication}}. When I use only those states where there will be elections for the Senate, we get the following graph of the relation between the perceived probability of a democratic win (\ref{sec:thesenategeneral}) and the approval rate for Trump, by state.
 
 <<label=approval,fig=TRUE,include=FALSE, echo=FALSE>>=
 Senate$Approve <- c(48, 49, 48, 57, 39, 50, 41, 44, 47, 42, 61,41,57,37,52,41,45,42,42,40,34,37,29,31,36,29,30,27,37,35,30,32,26,34)
 Senate$Disapprove <- c(46,47,47,36,54,44,53,51,48,53,35,53,39,58,45,55,50,53,55,55,61,57,65,63,58,60,65,68,58,59,63,62,69,60)
+Senate$Clinton16 <- c(40.11,33.7,27.46,21.63,43.24,34.72,45.13,37.91,38.14,47.92,26.43,47.82,27.23,46.44,35.75,46.45,43.56,47.16,47.83,47.27,54.99,49.73,61.73,54.57,53.09,62.22,60.33,60.01,46.44,48.26,59.01,54.41,56.68,52.54)
+Senate$Trump16 <- c(57.94,58.75,45.54,67.40,52.23,60.72,48.67,56.82,56.77,45.50,68.50,49.02,62.96,44.92,56.17,47.22,51.69,48.18,44.87,47.50,41.00,44.41,31.62,40.93,41.72,30.03,33.91,32.81,44.92,40.04,36.52,38.90,30.27,36.83)
+Senate$LeadClinton16 <- Senate$Clinton16 - Senate$Trump16
 ggplot(data=Senate) +
   geom_point(aes(x=Approve, y=DemProb, color=Party)) +
   labs(title="Rising approval rate means\nless chance for a Democratic win", subtitle="Republican incumbency lowers the chances even further", x="Approval rate Trump", y="Probability of Democratic win", caption="http://news.gallup.com/poll/226454") +
@@ -1079,9 +1082,18 @@ There are a few odd ones:
 \end{itemize}
 
 \subsection{Indiana}
+Big lead (18,91\%) for Trump (56,82\%) vs. Clinton (37,91\%) in the 2016 election
 \subsection{Missouri}
+Big lead (18,63\%) for Trump (56,77\%) vs. Clinton (38,14\%) in the 2016 election
 Probably McCaskill vs. Hawley. The latest poll (jan 8-9 2018) gives McCaskill a slight advantage (48/45). A ''Toss-up" still seems to be the right interpretation.
-
+\subsection{Arizona}
+Trump (48,67\%) had a small lead over Clinton (45,13\%)in the 2016 election
+\subsection{Nevada}
+Clinton (47,92\%) had a small lead over Trump (45,50\%) in the 2016 election
+\subsection{Mississipi}
+Big lead (17,83\%) for Trump (57,94\%) vs. Clinton (40,11\%) in the 2016 election
+\subsection{Nebraska}
+Huge lead (25,05\%) for Trump (58,75\%) vs. Clinton (33,70\%) in the 2016 election
 
 
 \end{document}
