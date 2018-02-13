@@ -254,8 +254,6 @@ ggplot() +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-
-
 Another approach is to include the supra-national effects into the probabilities that we assign to the labels ''Safe", ''Likely", etc.
 
 \newpage
@@ -330,17 +328,17 @@ ggplot(midterm1, aes(x=Approval, y=Gain)) +
 
 
 \begin{equation}
-  y = -140.5292 + 2.2224x
+  y = -140.5292 + 2.2224*x
 \end{equation}
 
-At the moment (2018-01-07 the Gallup approval rating of Trump is 39\% . The predicted change in the number of seats is:
+At the moment (2018-02-13) the Gallup approval rating of Trump is 40\% . The predicted change in the number of seats is:
 
 <<>>=
-y <- -140.5292 + 2.2224*39
+y <- -140.5292 + 2.2224*40
 y
 @
 
-The approval rate of Trump is low. So the confidence interval is large: -37 to -70 seats. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
+The confidence interval is large: -35 to -67 seats. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
 
 \subsection{Are other factors better predictors?}
 
@@ -375,6 +373,41 @@ modterm1ratio <- lm(Gain ~ Ratio, data=midterm1)
 The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summary(modterm1ratio)$r.squared,2)}. No improvement.
 
 Based on this information I think that it is likely that the Democrats take the House. At the moment I put it on 60\% which is noted as $P[H_{Dem}]=0.6$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.4$. 
+
+\subsection{Simulaton of the House election}
+
+The New York Times gave on Feb. 7th 2018 a list of all the districts and their status as being ''Solid Dem", ''Lean Dem" etc. Using the same probabilities for a democratic win as we used in the simulation for the Senate we get the following summary:
+
+<<echo=FALSE>>=
+House <- data.frame(Number=c(175, 180, 18, 19, 43), Party=c("D", "R", "D", "D", "R"), Rating=c("Solid Dem", "Solid Rep", "Lean Dem", "Toss up", "Lean Rep"), DemProb=c(0.95, 0.05, 0.75, 0.5, 0.25))
+@
+
+<<>>=
+House
+@
+
+Let's do a simulation of 10,000 elections:
+<<echo=FALSE>>=
+# Simulation
+# Number of simulations
+N <- 10000
+race.House <- matrix(0, N, sum(House$Number))
+set.seed(2018)
+for (i in 1:N) {
+    race.House[i, 1:House$Number[1]] <- rbinom(House$Number[1], 1, House$DemProb[1])
+    race.House[i, (House$Number[1] + 1) : (House$Number[1] + House$Number[2])] <- rbinom(House$Number[2], 1, House$DemProb[2])
+    race.House[i, (House$Number[1] + House$Number[2] + 1) : (House$Number[1] + House$Number[2] + House$Number[3])] <- rbinom(House$Number[3], 1, House$DemProb[3])
+    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4])] <- rbinom(House$Number[4], 1, House$DemProb[4])
+    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProb[5])
+}
+race.result.House <- rowSums(race.House)
+prob.House <- sum(race.result.House > 213)/N
+@
+
+<<>>=
+print(paste("Probability of 213 or more seats = ", round(prob.House,2), "%"))
+@
+
 
 \newpage
 \chapter{Conditional probabilities and the Likelihood Ratio}
@@ -569,7 +602,7 @@ These are exactly the formulas that we used \textbf{intuitively} in Table~\ref{t
 
 \subsection{Limits to possible results}
 \label{subsec:limits}
-Let's take a short theoretical detour, that is not fixed on the problem of the US-elections. We consider two events ($A$ and $B$). The alternative for event $A$ we call $A^{C}$ (its complement). These two events, $A$ and $A^{C}$ are mutually exclusive. This means that if $A$ occurs, $A^{C}$ cannot occur. Idem for $B$ and $B^{C}$. If the probability that $A$ occurs is a\% than it follows that the probability for $A^{C}$ equal to (100 - a)\%. Combining the two events $A$ and $B$ and their complements we get the Tabel~\ref{tab:ABstart}.
+Let's take a short theoretical detour, that is not fixed on the problem of the US-elections. We consider two events ($A$ and $B$). The alternative for event $A$ are its complement $A^{C}$. These two events, $A$ and $A^{C}$ are mutually exclusive. This means that if $A$ occurs, $A^{C}$ cannot occur. Idem for $B$ and $B^{C}$. If the probability that $A$ occurs is $P[A]$ than it follows that the probability for $A^{C}$ is equal to $1-P[A]$. Combining the two events $A$ and $B$ and their complements we get the Tabel~\ref{tab:ABstart}.
 
 \begin{margintable}[-5cm]
 \centering
@@ -1095,5 +1128,21 @@ Big lead (17,83\%) for Trump (57,94\%) vs. Clinton (40,11\%) in the 2016 electio
 \subsection{Nebraska}
 Huge lead (25,05\%) for Trump (58,75\%) vs. Clinton (33,70\%) in the 2016 election
 
+\section{2018-02-05}
+\newthought{People have not changed there mind since 2016}.
+
+<<label=leadCvsdisapproval,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot(data=Senate) +
+  geom_point(aes(x=LeadClinton16, y=Disapprove, color=Party)) +
+  labs(title="Strong correlation between the percentage\ndifference in 2016 and dissaproval of Trump", x="Lead of Clinton vs. Trump in 2016", y="Disapproval rate of Trump", caption="https://en.wikipedia.org/wiki/United_States_presidential_election,_2016") +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-leadCvsdisapproval}
+\caption{}
+\label{fig:leadCvsdisapproval}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
 
 \end{document}
