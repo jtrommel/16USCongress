@@ -401,13 +401,29 @@ for (i in 1:N) {
     race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProb[5])
 }
 race.result.House <- rowSums(race.House)
-prob.House <- sum(race.result.House > 213)/N
+prob.House <- sum(race.result.House > 218)/N
 @
 
 <<>>=
-print(paste("Probability of 213 or more seats = ", round(prob.House,2), "%"))
+print(paste("Probability of 218 or more seats = ", round(prob.House,2), "%"))
 @
 
+<<label=housesim,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.result.House) +
+  geom_histogram(binwidth=5, colour="black", fill="white") +
+  labs(title="House simulation", x="Number of Democratic seats", caption="Based on ratings as published in the New York Times, 2018-02-07") +
+  scale_x_discrete(limits=seq(min(race.result.House), max(race.result.House), by=5), 
+                   labels= seq(min(race.result.House),max(race.result.House), by=5)) +
+  JT.theme
+@
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{USC-housesim}
+\caption{}
+\label{fig:housesim}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
 
 \newpage
 \chapter{Conditional probabilities and the Likelihood Ratio}
