@@ -175,7 +175,7 @@ From this simulations we can see that the Democrats will (only) win \Sexpr{round
 Nate Silver argues that calculating state by state assumes that each state is run in a ''vacuum", completely independent of all others. However, the races are interconnected by factors that supersede the state level. That such factors exist is shown by the fact that historically the net number of seats won (positive) or lost (negative) is highly correlated with the approval rate of the incumbent president. This is clearly a factor that is above the state level and influences the total number of seats (not a particular one).
 
 <<label=midterm_senate1,fig=TRUE,include=FALSE, echo=FALSE>>=
-midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","GenDem","GenRep","PresParty"), na.strings="NA", stringsAsFactors = FALSE)
+midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","GenDem","GenRep","PresParty","Seats.up.ratio"), na.strings="NA", stringsAsFactors = FALSE)
 meanloss.senate <- data.frame(x = c(-Inf, Inf),
                      y = round(mean(midterm$Gain.Senate),1),
                      mean.loss = factor(round(mean(midterm$Gain.Senate), 1)))
@@ -411,7 +411,6 @@ Starting from the data per state, the Democrats are likely to \emph{win} 17 seat
 \newthought{For the House elections} there is a much stronger correlation between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote[][-2cm]{https://arxiv.org/pdf/1503.07545.pdf} than for the Senate. I have redone the calculation from this paper, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
 
 <<label=midterm,fig=TRUE,include=FALSE, echo=FALSE>>=
-midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","GenDem","GenRep","PresParty"), na.strings="NA", stringsAsFactors = FALSE)
 meanloss.house <- data.frame(x = c(-Inf, Inf),
                      y = round(mean(midterm$Gain.House),1),
                      mean.loss = factor(round(mean(midterm$Gain.House), 1)))
