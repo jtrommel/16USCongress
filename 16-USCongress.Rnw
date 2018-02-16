@@ -157,14 +157,14 @@ prob <- sum(race.result > 27)/N
 ggplot() +
   aes(race.result) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="23 seats = loss of 3!", subtitle="Winning 28 seats is very unlikely", x="Number of Democratic seats") +
+  labs(title="Senate: simulation on the micro level", subtitle="23 seats = loss of 3! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
   scale_x_discrete(limits=min(race.result):max(race.result), labels = c(min(race.result):max(race.result))) +
   JT.theme
 @
 
 \begin{marginfigure}[0cm]
 \includegraphics[width=1\textwidth]{USC-senatesim}
-\caption{Histogram of simulation}
+\caption{ }
 \label{fig:senatesim}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
@@ -181,7 +181,7 @@ meanloss.senate <- data.frame(x = c(-Inf, Inf),
                      mean.loss = factor(round(mean(midterm$Gain.Senate), 1)))
 ggplot(data=midterm) +
   geom_point(aes(x = Approval, y = Gain.Senate, colour = factor(Term))) +
-  geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red") +
+  geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red", linetype=2) +
   labs(title="Gain (+) or Loss (-) of seats in the Senate midterm\nelections in function of approval rate (%)", colour="Term") +
   JT.theme
 @
@@ -213,7 +213,7 @@ The $R^{2}$-value is \Sexpr{round(summary(modterm1)$r.squared,2)}. That is bette
 ggplot(midterm1, aes(x=Approval, y=Gain.Senate)) + 
   geom_point(shape=1) + 
   geom_smooth(method=lm) +
-  geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red") +
+  geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red", linetype=2) +
   labs(title="Gain (+) or Loss (-) of seats in the Senate midterm elections\nin function of approval rate (%) for  first term president") +
   JT.theme
 @
@@ -277,8 +277,33 @@ The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summar
 
 \subsection{Connecting the micro and the macro}
 
+The easiest way is to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific state election), is to take the probability on the micro level, and increase it \emph{when the approval rate is below 60}. The limit of 60 comes from Figure~\ref{fig:midterm1_senate_lm}. It is the approval rate where the presidents party does not lose any senate seats. The degree of the upgrade will then depend on the difference between the actual approval rate and the limit of 60. At the moment the scores are:
+
 <<echo=FALSE>>=
-Senate$DemProbCor <- Senate$DemProb + (59/40 - 1)*(1-Senate$DemProb)
+scores.ref <- data.frame(rating=c("Sure D", "Safe D", "Likely D", "Lean D", "Tilt D", "Toss up", "Tilt R", "Lean R", "Likely R", "Safe R", "Sure R"), Prob.Dem=c(0.999, 0.95, 0.85, 0.75, 0.65, 0.5, 0.35, 0.25, 0.15, 0.05, 0.001))
+@
+
+<<>>=
+scores.ref
+@
+
+A possible formula could be that 
+
+\begin{enumerate} 
+  \item if the actual approval rating is between 50 and 60 we upgrade the probability of a democratic win with \emph{half} a level: a ''Lean D" (prob=0.75) becomes something between a ''Lean D" (prob=0.75) and a ''Likely D" (prob=0.85) and gets a probability of 0.80. It boils down to a 5\% upgrade.
+  \item if the actual approval rating is between 40 and 50 we upgrade the probability of a democratic win with a \emph{full} level: a ''Lean D" (prob=0.75) becomes a ''Likely D" (prob=0.85) and gets a probability of 0.85. It comes down to a 10\% upgrade.
+\end{enumerate}
+
+In this case the approval rating is 40\% so we apply the upgrade with one level and the results are given by Figure~\ref{fig:senatesimfull}.
+
+<<echo=FALSE>>=
+Senate$DemProbCor <- ifelse(((JT.ProbCalc(JT.Cook, scores) + 
+                                 JT.ProbCalc(JT.InsideElections, scores) + 
+                                 JT.ProbCalc(JT.Sabato, scores))/3 + 0.1)>1, 
+                             0.999, 
+                             ((JT.ProbCalc(JT.Cook, scores) + 
+                                 JT.ProbCalc(JT.InsideElections, scores) + 
+                                 JT.ProbCalc(JT.Sabato, scores))/3 + 0.1))
 # Simulation
 # Number of simulations
 N <- 10000
@@ -290,61 +315,26 @@ for (i in 1:nrow(Senate)) {
 race.result <- rowSums(race)
 prob <- sum(race.result > 27)/N
 @
-
-The easiest way is to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific state election), is to take the probability on the micro level, and increase it. However, as the correlation is weak, this increase should be modest. The model predicts that an approval rate of 59\% would result in a zero net gain. An approval rate of 40\% leads to a net loss of about 11 seats. A race which at the moment is classified as ''Lean Dem" (probability of a win = 0.75) gets an upgrade to $0.75 + (1-0.75)*(\frac{59}{40}-1)=0.87$. The results of a 100\% upgrade are in Figure~\ref{fig:senatesimfull}. With this extreme upgrade we can get to 28 seats and more. The calculated probability of the Democrats winning the Senate in this case is \Sexpr{round(100*prob,2)}\%.
 
 <<label=senatesimfull,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
   aes(race.result) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="Full upgrade of probabilities of democratic win", subtitle="28 seats or more is possible", x="Number of Democratic seats") +
+  labs(title="Senate: upgrade of probabilities of democratic win", subtitle="26 seats or status quo", x="Number of Democratic seats") +
   scale_x_discrete(limits=min(race.result):max(race.result), labels = c(min(race.result):max(race.result))) +
   JT.theme
 @
 
-\begin{marginfigure}[-7cm]
+\begin{marginfigure}[0cm]
 \includegraphics[width=1\textwidth]{USC-senatesimfull}
-\caption{Histogram of simulation}
+\caption{ }
 \label{fig:senatesimfull}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
+With this  adjustment of the probabilities of a Democratic win, the end result is a status quo which means that the Republicans do not get past a 60 seat majority.. The calculated probability of the Democrats winning the Senate \emph{with the upgrade} is \Sexpr{round(100*prob,2)}\%.
 
-<<echo=FALSE>>=
-# p is the percentage of the upgrade of the probabilities
-p <- 0.5
-Senate$DemProbCor <- Senate$DemProb + p*(59/40 - 1)*(1-Senate$DemProb)
-# Simulation
-# Number of simulations
-N <- 10000
-race <- matrix(0, N, nrow(Senate))
-set.seed(2018)
-for (i in 1:nrow(Senate)) {
-    race[,i] <- rbinom(N, 1, Senate$DemProbCor[i])
-}
-race.result <- rowSums(race)
-prob <- sum(race.result > 27)/N
-@
-
-<<label=senatesim50,fig=TRUE,include=FALSE, echo=FALSE>>=
-ggplot() +
-  aes(race.result) +
-  geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="50% upgrade of probabilities of democratic win", subtitle="26 seats (status quo) seems likely", x="Number of Democratic seats") +
-  scale_x_discrete(limits=min(race.result):max(race.result), labels = c(min(race.result):max(race.result))) +
-  JT.theme
-@
-
-\begin{marginfigure}[-1cm]
-\includegraphics[width=1\textwidth]{USC-senatesim50}
-\caption{Histogram of simulation}
-\label{fig:senatesim50}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
-
-But the model should be treated with caution. The results of a 50\% upgrade are in Figure~\ref{fig:senatesim50}. The calculated probability of the Democrats winning the Senate in this case is \Sexpr{round(100*prob,2)}\%. With this modest adjustment of the probabilities of a Democratic win, the end result is a status quo. The Democrats do not win the Senate, but the status quo means that the Republicans do not get past a 60 seat majority.
-
-\newthought{Conclusion} I do not see any reason that the probability for a Democratic win is higher than \textbf{20\%}.
+\newthought{Conclusion} I do not see any reason that the probability for \emph{a Democratic win of the Senate} is higher than \textbf{20\%}.
 
 \newpage
 \section{The House}
@@ -414,11 +404,11 @@ ggplot() +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-Starting from the data per state, the Democrats are likely to \emph{win} 17 seats, getting them to 210. Close to 218 in order to win the House. The probability to do so is \emph{about 5\%}.
+Starting from the data per state, the Democrats are likely to \emph{win} 17 seats, getting them to 210. That is close to 218 in order to win the House, but not there yet. The probability to do so is \emph{about 5\%}.
 
 \subsection{The macro view}
 
-\newthought{There is a strong correlation} between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote[][-2cm]{https://arxiv.org/pdf/1503.07545.pdf}. I have redone the calculation, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
+\newthought{For the House elections} there is a much stronger correlation between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote[][-2cm]{https://arxiv.org/pdf/1503.07545.pdf} than for the Senate. I have redone the calculation from this paper, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
 
 <<label=midterm,fig=TRUE,include=FALSE, echo=FALSE>>=
 midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","GenDem","GenRep","PresParty"), na.strings="NA", stringsAsFactors = FALSE)
@@ -523,7 +513,7 @@ Based on this information I think that it is likely that the Democrats take the 
 \subsection{Connecting the micro and the macro}
 
 <<echo=FALSE>>=
-House$DemProbCor <- House$DemProb + (65/40 - 1)*(1-House$DemProb)
+House$DemProbCor <- ifelse((House$DemProb + 0.1) > 1, 0.999, (House$DemProb + 0.1))
 N <- 10000
 race.House <- matrix(0, N, sum(House$Number))
 set.seed(2018)
@@ -538,69 +528,30 @@ race.result.House <- rowSums(race.House)
 prob.House <- sum(race.result.House > 218)/N
 @
 
-
-I use the same method to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific state election) by increasing the probability on the micro level. The correlation is much stronger here. The model predicts that an approval rate of 65\% would result in a zero net gain. A race which at the moment is classified as ''Lean Dem" (probability of a win = 0.75) gets an upgrade to $0.75 + (1-0.75)*(\frac{65}{40}-1)=0.90$. The results of a 100\% upgrade are in Figure~\ref{fig:housesimfull}. With this extreme upgrade we can get to 28 seats and more. The calculated probability of the Democrats winning the House in this case is \Sexpr{round(100*prob.House,2)}\%.
+I use the same method to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific state election) by increasing the probability on the micro level.
 
 <<label=housesimfull,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
   aes(race.result.House) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
   labs(title="House: full upgrade of probabilities of democratic win", 
-       subtitle="350 seats = gain of 157 is impossible", 
+       subtitle="245 seats = gain of 52 is impossible", 
        x="Number of Democratic seats") +
-  scale_x_continuous(breaks = seq(300, 400, by=5),
-                     labels = seq(300, 400, by=5)) +
+  scale_x_continuous(breaks = seq(200, 300, by=5),
+                     labels = seq(200, 300, by=5)) +
   JT.theme
 @
 
 \begin{marginfigure}[0cm]
 \includegraphics[width=1\textwidth]{USC-housesimfull}
-\caption{Histogram of simulation}
+\caption{ }
 \label{fig:housesimfull}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
+The results of a 10\% upgrade are in Figure~\ref{fig:housesimfull}. The calculated probability of the Democrats winning the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
 
-<<echo=FALSE>>=
-# p is the percentage of the upgrade of the probabilities
-p <- 0.1
-House$DemProbCor <- House$DemProb + p*(65/40 - 1)*(1-House$DemProb)
-N <- 10000
-race.House <- matrix(0, N, sum(House$Number))
-set.seed(2018)
-for (i in 1:N) {
-    race.House[i, 1:House$Number[1]] <- rbinom(House$Number[1], 1, House$DemProbCor[1])
-    race.House[i, (House$Number[1] + 1) : (House$Number[1] + House$Number[2])] <- rbinom(House$Number[2], 1, House$DemProbCor[2])
-    race.House[i, (House$Number[1] + House$Number[2] + 1) : (House$Number[1] + House$Number[2] + House$Number[3])] <- rbinom(House$Number[3], 1, House$DemProbCor[3])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4])] <- rbinom(House$Number[4], 1, House$DemProbCor[4])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProbCor[5])
-}
-race.result.House <- rowSums(race.House)
-prob.House <- sum(race.result.House > 218)/N
-@
-
-<<label=housesim10,fig=TRUE,include=FALSE, echo=FALSE>>=
-ggplot() +
-  aes(race.result.House) +
-  geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="House: 10% upgrade of probabilities of democratic win",
-       subtitle="224 seats = gain of 31: seems likely!",
-       x="Number of Democratic seats") +
-  scale_x_continuous(breaks = seq(200, 250, by=5),
-                   labels = seq(200, 250, by=5)) +
-  JT.theme
-@
-
-\begin{marginfigure}[0cm]
-\includegraphics[width=1\textwidth]{USC-housesim10}
-\caption{Histogram of simulation}
-\label{fig:housesim10}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
-
-The results of a 10\% upgrade are in Figure~\ref{fig:housesim30}. The calculated probability of the Democrats winning the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
-
-\newthought{Conclusion}. Winning ths House seems much more likely! Only a small ''macro" push will give the Democrats a majority in the House. Let's keep it at 70\% for the moment.
+\newthought{Conclusion}. The result of the uprade is the same as the prediction of the number of seats won by the model based on the approval rating. Winning ths House seems much more likely! Only a small ''macro" push will give the Democrats a majority in the House. Let's keep it at 70\% for the moment.
 
 
 \newpage
