@@ -123,7 +123,9 @@ JT.ProbCalc <- function(JT.df,scores) {
 \end{tabular}
 
 \bigskip
-The Democrats need 2 extra seats. 26 democrat seats are up for election. So they have to hold onto those AND gain an extra 2 seats to get to 28 in this election. 
+The important element in the Senate elections is that the number of seats up for election is only a third (34) of the total Senate seats. Compared to the 435 seats which are up for election in the House this is a very small number.
+Additionaly the seats up for election are not distributed evenly between the two parties: 26 democratic (2 independents included) seats are in contention but only 8 republican. To get a majority in the Senats the Democrats have to hold onto the 26 they have AND gain an extra 2 seats to get to 28 in this election.
+
 \begin{itemize}
   \item They must hold onto their seats in states that Trump won. In 5 of those states (West-Virginia, North Dakota, Missouri, Montana and Indiana) he won with more than 10\% difference.
   \item They need to get at least two and preferably three in the group Arizona, Nevada, Tennessee, Texas.
@@ -169,13 +171,15 @@ ggplot() +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-From this simulations we can see that the Democrats will (only) win \Sexpr{round(mean(race.result),0)} seats, which is a loss of \Sexpr{26 - round(mean(race.result),0)} seats! The probability of winning at least 28 seats is \Sexpr{round(prob,2)} \%.
+From this simulations we can see that the Democrats will (only) win \Sexpr{round(mean(race.result),0)} seats, which is a loss of \Sexpr{26 - round(mean(race.result),0)} seats! The probability of winning at least 28 seats is only \Sexpr{100*round(prob,2)} \%.
 
 \subsection{The macro view: taking correlation into account}
-Nate Silver argues that calculating state by state assumes that each state is run in a ''vacuum", completely independent of all others. However, the races are interconnected by factors that supersede the state level. That such factors exist is shown by the fact that historically the net number of seats won (positive) or lost (negative) is highly correlated with the approval rate of the incumbent president. This is clearly a factor that is above the state level and influences the total number of seats (not a particular one).
+Nate Silver argues that calculating state by state assumes that each state is run in a ''vacuum", completely independent of all others. However, the races are interconnected by factors that supersede the state level. 
+
+\newthought{The approval rating of the president} is historically linked with the net number of seats won (positive) or lost (negative). This is clearly a factor that is above the state level and influences the total number of seats (not a particular one).
 
 <<label=midterm_senate1,fig=TRUE,include=FALSE, echo=FALSE>>=
-midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","GenDem","GenRep","PresParty","Seats.up.ratio"), na.strings="NA", stringsAsFactors = FALSE)
+midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","Seats.up.ratio","Generic.Lead"), dec=",", na.strings="NA", stringsAsFactors = FALSE)
 meanloss.senate <- data.frame(x = c(-Inf, Inf),
                      y = round(mean(midterm$Gain.Senate),1),
                      mean.loss = factor(round(mean(midterm$Gain.Senate), 1)))
@@ -197,24 +201,19 @@ ggplot(data=midterm) +
 modall.senate <- lm(midterm$Gain.Senate ~ midterm$Approval)
 @
 
-We can fit a linear model through all these points. The $R^{2}$-value is \Sexpr{round(summary(modall.senate)$r.squared,2)}. That is not very impressive.
+We plot the net gain (+) or net loss (-) of Senate seats of the president's party in relation to the approval rate of the president and fit a linear model through all these points (Figure~\ref{fig:midterm.senate1}). The $R^{2}$-value is \Sexpr{round(summary(modall.senate)$r.squared,2)}. That is not very impressive.
 
-\medskip
-It seems that a model for \emph{the first term} of a president could be better.
-\medskip
 <<echo=FALSE>>=
 midterm %>% filter(Term==1) -> midterm1
 modterm1 <- lm(Gain.Senate ~ Approval, data=midterm1)
 @
-\medskip
-The $R^{2}$-value is \Sexpr{round(summary(modterm1)$r.squared,2)}. That is better, but not great.
 
 <<label=midterm1_senate_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot(midterm1, aes(x=Approval, y=Gain.Senate)) + 
   geom_point(shape=1) + 
   geom_smooth(method=lm) +
   geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red", linetype=2) +
-  labs(title="Gain (+) or Loss (-) of seats in the Senate midterm elections\nin function of approval rate (%) for  first term president") +
+  labs(title="Senate: Gain (+) or Loss (-) of seats\nin function of approval rate (%) for  first term president") +
   JT.theme
 @
 
@@ -224,117 +223,68 @@ ggplot(midterm1, aes(x=Approval, y=Gain.Senate)) +
 \label{fig:midterm1_senate_lm}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
+A model for \emph{first term} presidents is better (Figure~\ref{fig:midterm1_senate_lm}) with an $R^{2}$-value of \Sexpr{round(summary(modterm1)$r.squared,2)}. That is better, but not great.
+\medskip
 
+The important observation in the Senate election is that the asymmetry in the seats which are up for election plays an important role. For example: in 2018 there are 26 democratic seats (independents included) up for election, but only 8 republican seats. I define the ''Seats up ratio" as the number of seats up for election of \emph{the president's party} devided by the number of seats up for election \emph{of the other party/parties}. In 2018 this is $\frac{8}{26}=0.308$. Of all midterm elections since 1946 this is the \emph{lowest} ratio!
 
-\begin{equation}
-  y = -35.59 + 0.6*x
-\end{equation}
-
-At the moment (2018-02-13) the Gallup approval rating of Trump is 40\% . The predicted change in the number of seats is:
-
-<<>>=
-y <- -34.59 + 0.6*40
-y
+<<echo=FALSE>>=
+midterm1 %>% filter(Seats.up.ratio <= 1) -> midterm1low
+modterm1low <- lm(Gain.Senate ~ Approval, data=midterm1low)
 @
-
-The confidence interval is -5 to -19 seats. This correlation indicates that instead of a gain of 3 seats by the Republicans, the could end up with a net loss of 11!
 \newpage
-\subsection{Are other factors better predictors?}
+The ''Seats up ratio" has an important influence. When we look at gains (+) or losses (-) of Senate seats in all midterm elections since 1946 for first term presidents when the president's party had to defend \emph{less} seats than the other party (which means that the ''Seats up ratio" is smaller than 1) there is \emph{no correlation} between the president's approval rate and the net result of the Senate race (Figure~\ref{fig:midterm1low_senate_lm}). The $R^{2}$-value is \Sexpr{round(summary(modterm1low)$r.squared,2)} which means that \emph{the approval rate of the president is not correlated with the net result of the Senate election}.
 
-\newthought{The Disapproval rate} could be a better predictor.
-
-\medskip
-<<echo=FALSE>>=
-midterm %>% select(Gain.Senate, Disapproval, Term) %>% filter(Term==1) -> midterm1dis
-modterm1dis <- lm(Gain.Senate ~ Disapproval, data=midterm1dis)
-@
-\medskip
-The $R^{2}$-value for the model based on the \emph{Disapproval rate} is \Sexpr{round(summary(modterm1dis)$r.squared,2)}. No improvement.
-
-\newthought{Maybe the difference between Approval and Disapproval rate?}
-
-\medskip
-<<echo=FALSE>>=
-midterm1$Diff <- midterm1$Approval - midterm1$Disapproval
-modterm1diff <- lm(Gain.Senate ~ Diff, data=midterm1)
-@
-\medskip
-The $R^{2}$-value for the model based on the \emph{Difference} is \Sexpr{round(summary(modterm1diff)$r.squared,2)}. No improvement.
-
-\newthought{Maybe the ratio: Approval/Disapproval?}
-
-\medskip
-<<echo=FALSE>>=
-midterm1$Ratio <- midterm1$Approval/midterm1$Disapproval
-modterm1ratio <- lm(Gain.Senate ~ Ratio, data=midterm1)
-@
-\medskip
-The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summary(modterm1ratio)$r.squared,2)}. No better.
-
-\medskip
-
-\newthought{None of the models are very good} because the $R^{2}$-value is low. This means that there is some effect of the presidents approval rate on the net result in the Senate, but it should be treated with care.
-
-\subsection{Connecting the micro and the macro}
-
-The easiest way is to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific state election), is to take the probability on the micro level, and increase it \emph{when the approval rate is below 60}. The limit of 60 comes from Figure~\ref{fig:midterm1_senate_lm}. It is the approval rate where the presidents party does not lose any senate seats. The degree of the upgrade will then depend on the difference between the actual approval rate and the limit of 60. At the moment the scores are:
-
-<<echo=FALSE>>=
-scores.ref <- data.frame(rating=c("Sure D", "Safe D", "Likely D", "Lean D", "Tilt D", "Toss up", "Tilt R", "Lean R", "Likely R", "Safe R", "Sure R"), Prob.Dem=c(0.999, 0.95, 0.85, 0.75, 0.65, 0.5, 0.35, 0.25, 0.15, 0.05, 0.001))
-@
-
-<<>>=
-scores.ref
-@
-
-A possible formula could be that 
-
-\begin{enumerate} 
-  \item if the actual approval rating is between 50 and 60 we upgrade the probability of a democratic win with \emph{half} a level: a ''Lean D" (prob=0.75) becomes something between a ''Lean D" (prob=0.75) and a ''Likely D" (prob=0.85) and gets a probability of 0.80. It boils down to a 5\% upgrade.
-  \item if the actual approval rating is between 40 and 50 we upgrade the probability of a democratic win with a \emph{full} level: a ''Lean D" (prob=0.75) becomes a ''Likely D" (prob=0.85) and gets a probability of 0.85. It comes down to a 10\% upgrade.
-\end{enumerate}
-
-In this case the approval rating is 40\% so we apply the upgrade with one level and the results are given by Figure~\ref{fig:senatesimfull}.
-
-<<echo=FALSE>>=
-Senate$DemProbCor <- ifelse(((JT.ProbCalc(JT.Cook, scores) + 
-                                 JT.ProbCalc(JT.InsideElections, scores) + 
-                                 JT.ProbCalc(JT.Sabato, scores))/3 + 0.1)>1, 
-                             0.999, 
-                             ((JT.ProbCalc(JT.Cook, scores) + 
-                                 JT.ProbCalc(JT.InsideElections, scores) + 
-                                 JT.ProbCalc(JT.Sabato, scores))/3 + 0.1))
-# Simulation
-# Number of simulations
-N <- 10000
-race <- matrix(0, N, nrow(Senate))
-set.seed(2018)
-for (i in 1:nrow(Senate)) {
-    race[,i] <- rbinom(N, 1, Senate$DemProbCor[i])
-}
-race.result <- rowSums(race)
-prob <- sum(race.result > 27)/N
-@
-
-<<label=senatesimfull,fig=TRUE,include=FALSE, echo=FALSE>>=
-ggplot() +
-  aes(race.result) +
-  geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="Senate: upgrade of probabilities of democratic win", subtitle="26 seats or status quo", x="Number of Democratic seats") +
-  scale_x_discrete(limits=min(race.result):max(race.result), labels = c(min(race.result):max(race.result))) +
+<<label=midterm1low_senate_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot(midterm1low, aes(x=Approval, y=Gain.Senate)) + 
+  geom_point(shape=1) + 
+  geom_smooth(method=lm) +
+  geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red", linetype=2) +
+  labs(title="Senate: Gain (+) or Loss (-) of seats\nin function of approval rate (%) for  first term president",
+       subtitle="Seats up ratio =< 1") +
   JT.theme
 @
 
-\begin{marginfigure}[0cm]
-\includegraphics[width=1\textwidth]{USC-senatesimfull}
-\caption{ }
-\label{fig:senatesimfull}
+\begin{marginfigure}[-2cm]
+\includegraphics[width=1\textwidth]{USC-midterm1low_senate_lm}
+\caption{}
+\label{fig:midterm1low_senate_lm}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-With this  adjustment of the probabilities of a Democratic win, the end result is a status quo which means that the Republicans do not get past a 60 seat majority.. The calculated probability of the Democrats winning the Senate \emph{with the upgrade} is \Sexpr{round(100*prob,2)}\%.
+<<echo=FALSE>>=
+midterm1 %>% filter(Seats.up.ratio > 1) -> midterm1high
+modterm1high <- lm(Gain.Senate ~ Approval, data=midterm1high)
+@
 
-\newthought{Conclusion} I do not see any reason that the probability for \emph{a Democratic win of the Senate} is higher than \textbf{20\%}.
+When we look at midterm elections for the Senate when the ''Seats up ratio" is greater than 1 (the president's party has to defend more seats than the other party) the situation is completely different (Figure~\ref{fig:midterm1high_senate_lm}).The $R^{2}$-value is now \Sexpr{round(summary(modterm1high)$r.squared,2)}. In this situation the president's approval rate is \emph{very} important.
+
+<<label=midterm1high_senate_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot(midterm1high, aes(x=Approval, y=Gain.Senate)) + 
+  geom_point(shape=1) + 
+  geom_smooth(method=lm) +
+  geom_line(aes(x, y, linetype = mean.loss), meanloss.senate, colour="red", linetype=2) +
+  labs(title="Senate: Gain (+) or Loss (-) of seats\nin function of approval rate (%) for  first term president",
+       subtitle="Seats up ratio > 1") +
+  JT.theme
+@
+
+\begin{marginfigure}
+\includegraphics[width=1\textwidth]{USC-midterm1high_senate_lm}
+\caption{}
+\label{fig:midterm1high_senate_lm}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+\newthought{The generic ballot polls} could also give an indication of the more general feeling among the population. This also rises above the State level and could play a part. First investigations based on numbers given by The Times\sidenote{https://www.nytimes.com/2017/12/20/upshot/democrats-2018-congressional-elections-polling.html} do not seem to support this however. Further inquiry necessary.
+
+\subsection{Connecting the micro and the macro}
+
+\newthought{The 2018 Senate election} has a \emph{first time president} who has the luxury that the number of seats up for election of his own party is \emph{the lowest} compared with the ''opposition" since 1946. He should not worry too much about his approval rate because it probably will not change the distribution of seats in the Senate. A zero net gain/loss means that the Democrats could hold onto their 26 seats (independents included), which is higher than what the micro level simulation predicts. The chance of maintaining the status quo is therefore possible because Figure~\ref{fig:midterm1low_senate_lm} shows that on average there is a net loss of 2 seats for the president's party. However: this should be interpreted very cautiously because the data set (first time presidents + Seats up ratio >=1) has only 5 data points.
+
+Can the Democrats get to 28 seats? It is not impossible, but for the moment very unlikely.
+
+\newthought{Conclusion} I do not see any reason to put the probability for \emph{a Democratic win of the Senate} higher than \textbf{20\%}.
 
 \newpage
 \section{The House}
@@ -421,7 +371,7 @@ ggplot(data=midterm) +
   JT.theme
 @
 
-\begin{marginfigure}[-2cm]
+\begin{marginfigure}[-1cm]
 \includegraphics[width=1\textwidth]{USC-midterm}
 \caption{}
 \label{fig:midterm}
@@ -434,18 +384,15 @@ modall <- lm(midterm$Gain.House ~ midterm$Approval)
 
 We can fit a linear model through all these points. The $R^{2}$-value is \Sexpr{round(summary(modall)$r.squared,2)}. That is not very impressive.
 
-\medskip
-As in the case of the Senate a model based only on \emph{first term}-presidents is better.
-\medskip
 <<echo=FALSE>>=
 midterm %>% filter(Term==1) -> midterm1
 modterm1 <- lm(Gain.House ~ Approval, data=midterm1)
 @
 \medskip
-The $R^{2}$-value is \Sexpr{round(summary(modterm1)$r.squared,2)}. That is better.
+As in the case of the Senate a model based only on \emph{first term}-presidents is better (Figure~\ref{fig:midterm1house_lm}). The $R^{2}$-value is \Sexpr{round(summary(modterm1)$r.squared,2)}. That is much better.
 
 \newpage
-<<label=midterm1_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
+<<label=midterm1house_lm,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot(midterm1, aes(x=Approval, y=Gain.House)) + 
   geom_point(shape=1) + 
   geom_smooth(method=lm) +
@@ -455,9 +402,9 @@ ggplot(midterm1, aes(x=Approval, y=Gain.House)) +
 @
 
 \begin{marginfigure}[1cm]
-\includegraphics[width=1\textwidth]{USC-midterm1_lm}
+\includegraphics[width=1\textwidth]{USC-midterm1house_lm}
 \caption{}
-\label{fig:midterm1_lm}
+\label{fig:midterm1house_lm}
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
@@ -507,9 +454,15 @@ modterm1ratio <- lm(Gain.House ~ Ratio, data=midterm1)
 \medskip
 The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summary(modterm1ratio)$r.squared,2)}. No improvement.
 
-Based on this information I think that it is likely that the Democrats take the House. At the moment I put it on 60\% which is noted as $P[H_{Dem}]=0.6$. This  means that the probability that the Republicans hold the House is $P[H_{Rep}]=0.4$. 
-
 \subsection{Connecting the micro and the macro}
+
+The easiest way is to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific election), is to take the probability on the micro level, and increase it \emph{when the approval rate is below 60}. The limit of 60 comes from Figure~\ref{fig:midterm1house_lm}. It is the approval rate where the president's party does not lose any house seats. The degree of the upgrade will then depend on the difference between the actual approval rate and the limit of 60. Let us try an upgrade with one level: a ''Likely D" on the micro level becomes a ''Safe D" on the combined micro-macro level. This is equivalent of an increase of the probability of a democratic win with 10\%. 
+
+The results of this upgrade are given in Figure~\ref{fig:housesimfull}. The Democrats get 245 seats which is more than enough to win the House. The calculated probability for a democratic win of the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
+
+<<echo=FALSE>>=
+scores.ref <- data.frame(rating=c("Sure D", "Safe D", "Likely D", "Lean D", "Tilt D", "Toss up", "Tilt R", "Lean R", "Likely R", "Safe R", "Sure R"), Prob.Dem=c(0.999, 0.95, 0.85, 0.75, 0.65, 0.5, 0.35, 0.25, 0.15, 0.05, 0.001))
+@
 
 <<echo=FALSE>>=
 House$DemProbCor <- ifelse((House$DemProb + 0.1) > 1, 0.999, (House$DemProb + 0.1))
@@ -526,8 +479,6 @@ for (i in 1:N) {
 race.result.House <- rowSums(race.House)
 prob.House <- sum(race.result.House > 218)/N
 @
-
-I use the same method to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific state election) by increasing the probability on the micro level.
 
 <<label=housesimfull,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
@@ -548,559 +499,57 @@ ggplot() +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-The results of a 10\% upgrade are in Figure~\ref{fig:housesimfull}. The calculated probability of the Democrats winning the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
+<<echo=FALSE>>=
+House$DemProbCor <- ifelse((House$DemProb + 0.1) > 1, 0.999, (House$DemProb + 0.05))
+N <- 10000
+race.House <- matrix(0, N, sum(House$Number))
+set.seed(2018)
+for (i in 1:N) {
+    race.House[i, 1:House$Number[1]] <- rbinom(House$Number[1], 1, House$DemProbCor[1])
+    race.House[i, (House$Number[1] + 1) : (House$Number[1] + House$Number[2])] <- rbinom(House$Number[2], 1, House$DemProbCor[2])
+    race.House[i, (House$Number[1] + House$Number[2] + 1) : (House$Number[1] + House$Number[2] + House$Number[3])] <- rbinom(House$Number[3], 1, House$DemProbCor[3])
+    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4])] <- rbinom(House$Number[4], 1, House$DemProbCor[4])
+    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProbCor[5])
+}
+race.result.House <- rowSums(race.House)
+prob.House <- sum(race.result.House > 218)/N
+@
 
-\newthought{Conclusion}. The result of the uprade is the same as the prediction of the number of seats won by the model based on the approval rating. Winning ths House seems much more likely! Only a small ''macro" push will give the Democrats a majority in the House. Let's keep it at 70\% for the moment.
+Perhaps an upgrade of 10\% is excessive. Let's look at a more moderate upgrade of half a level (+5\%) (Figure~\ref{fig:housesimhalf}). The Democrats could get 230 seats and easily win the House. The calculated probability for a democratic win of the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
+
+<<label=housesimhalf,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.result.House) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="House: half upgrade of probabilities of democratic win", 
+       subtitle="230 seats = gain of 37 is impossible", 
+       x="Number of Democratic seats") +
+  scale_x_continuous(breaks = seq(200, 300, by=5),
+                     labels = seq(200, 300, by=5)) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-housesimhalf}
+\caption{ }
+\label{fig:housesimhalf}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+\newthought{Conclusion}. The result of the upgrade and the prediction of the number of seats won by the model based on the approval rating point in the same direction. This is not surprising: because all 435 seats are up for election, a small ''general" effect will work on all those seats shifting the result in favor of the Democrats. Winning the House seems much more likely! Only a small ''macro" push will give the Democrats a majority in the House. I put the probability of the Democrats winning the House for the moment at 70\%.
 
 
 \newpage
-\chapter{Conditional probabilities and the Likelihood Ratio}
+\chapter{Filling out the matrix}
+
+We are not asked to give the probabilities for the winning of the Senate or the House, but for combinations of these two.
 
 \section{About graphs, tables and many solutions}
 
-\newthought{Ken Barns} posted a comment in the Good Judgement Open. In it he discussed a way to calculate the probability that e.g. the Democrats would win both the House and the Senate. He used the concept of the \emph{Likelihood Ratio}. I must admit I was not familiar with this. But it is linked to \emph{conditional probabilities}, and I know something about those. 
+\newthought{Ken Barns} posted a comment in the Good Judgement Open. In it he discussed a way to calculate the probability that e.g. the Democrats would win both the House and the Senate. He used the concept of the \emph{Likelihood Ratio}. I must admit I was not familiar with this. But it is linked to \emph{conditional probabilities}, and I got intrigued. However: it soon became clear that things are not so easy. I cannot put all the material I found on the subject in this document because it would become too long. I have put everything in another document called ''Conditional Probabilities and Likelihood Ratio". The matrix we are trying to fill out is aptly called the ''Confusion Matrix"! I will make the document available later. The mathematics are not difficult in themselves (mostly just fraction), but the matter becomes rather overwhelming.
 
-A visualization might help. After the elections it will be very easy to draw a graph showing how many voters in the House election voted for the Democrats, and how many for the Republicans (Figure~\ref{fig:House1}). 
+\newthought{What are the conclusions about the matrix}? First: the starting data are crucial. Usually we start with the probabilities of a win for the Democrats in the Senate and in the House as a given. We take these probabilities from worthies like Nate Silver, or our own calculations. Then we try to find the probabilities of the combinations. However: that is not necessary the best approach. You absolutely need one of the probabilities (Senate of House) to start with. But once you have chosen that one (for example: probability of a win of the House for the Democrats = $P[H_{Dem}]=70\%$), you need two other choices. One of these could be the probability that the Democrats win the Senate = $P[S_{Dem}]=20\%$, but that is not necessary. You can also start with two of the conditional probabilities, or one conditional probability and a Likelihood Ratio etc. At the moment this leads me to my forecast of \ref{sec:20180217}.
 
-\begin{marginfigure}[-5cm]
-\includegraphics[width=1\textwidth]{Graphics/House1}
-\caption{}
-\label{fig:House1}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
-
-However, at this moment we do not know the result. We can only give our best guess as to the result and express this probability as a percentage (Figure~\ref{fig:House2}). The percentages we give (in this case 60\% and 40\%) are based on what we gather from external sources and our own ''insight". Symbolically we write this as:
-\begin{equation}
- P[H_{Dem}]=0.6 \qquad P[H_{Rep}]=0.4
-\end{equation}
-
-The letter P stands for \textbf{P}robability and between the square brackets we describe the event to which we assigning this probability.
-
-\begin{marginfigure}[-5cm]
-\includegraphics[width=1\textwidth]{Graphics/House2}
-\caption{}
-\label{fig:House2}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
-
-Of course we can do the same for the elections of the Senate. With
-\begin{equation}
- P[S_{Dem}]=0.5 \qquad P[S_{Rep}]=0.5
-\end{equation}
-we get the Figure~\ref{fig:Senate2}
-
-\begin{marginfigure}[-1cm]
-\begin{flushright}
-\includegraphics[width=0.8\textwidth]{Graphics/Senate2}
-\caption{}
-\label{fig:Senate2}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{flushright}
-\end{marginfigure}
-
-It becomes interesting when we combine both graphs. I think that, \textbf{intuitively}, most people would make the following graph (Figure~\ref{fig:Both4}).
-\medskip
-\begin{figure}
-\includegraphics[width=1\textwidth]{Graphics/Both4}
-\caption{Combined graphs}
-\label{fig:Both4}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{figure}
-
-It is easy to calculate the area of the four regions. For example, the top left area would be 60\%*50\%=30\%. As we can see the sum along the rows result in the numbers to the right. The sum along the columns result in the numbers at the bottom. The four areas give the four possible outcomes of the election:
-
-\begin{enumerate}
-  \item top left is the situation that the Democrats win the House \textbf{AND} the Senate
-  \item top right is Democrats win the House \textbf{AND} Republicans win the Senate
-  \item bottom left is Republicans win the House \textbf{AND} Democrats in the Senate
-  \item bottom right is Republicans win the House \textbf{AND} the Senate
-\end{enumerate}
-
-Our \textbf{intuitive} calculation can be summarised by the following formula:
-
-\begin{equation}
-  P[X \quad AND \quad Y]=P[X]*P[Y]
-  label{eq:independent}
-\end{equation}
-\medskip
-
-\begin{itemize}
-  \item $P[H_{Dem}$  AND  $S_{Dem}]=P[H_{Dem}]*P[S_{Dem}]=0.6*0.5=0.3$
-  \item $P[H_{Dem}$  AND  $S_{Rep}]=P[H_{Dem}]*P[S_{Rep}]=0.6*0.5=0.3$
-  \item $P[H_{Rep}$  AND  $S_{Dem}]=P[H_{Rep}]*P[S_{Dem}]=0.4*0.5=0.2$
-  \item $P[H_{Rep}$  AND  $S_{Rep}]=P[H_{Rep}]*P[S_{Rep}]=0.4*0.5=0.2$
-\end{itemize}
-\medskip
-In his comment Ken Barns describes the same situation and he puts it in a table (Table~\ref{tab:table1}).
-
-\begin{margintable}
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & 0.3 & 0.3 & 0.6 \\
-  $H_{Rep}$ & 0.2 & 0.2 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:table1}
-\end{margintable}
-
-\newthought{The shock} comes when we realise that other solutions are also possible. For example Table~\ref{tab:table2} and Figure~\ref{fig:Both2}. The sum totals along the rows and columns are OK.
-
-\begin{margintable}
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & 0.45 & 0.15 & 0.6 \\
-  $H_{Rep}$ & 0.05 & 0.35 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:table2}
-\end{margintable}
-
-\begin{marginfigure}[0cm]
-\includegraphics[width=0.8\textwidth]{Graphics/Both2}
-\caption{}
-\label{fig:Both2}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
-
-\newthought{How many possible solutions} are there? The answer is: an infinite number! We can see this as follows: when we start in the upper left corner ($H_{Dem}$ AND $S_{Dem}$) and we put there a number e.g. 0.31 the numbers in all the other squares follow from this choice. In the upper row the sum must be 0.6. From this it follows that the number in the upper right corner must be 0.6-0.31=0.29. In the left column the sum (at the bottom) must be 0.5. This means that the number in the lower left corner must be 0.5-0.31=0.19. In the same way we find that the number in the lower right corner must be 0.5-0.29=0.21 (Table~\ref{tab:solution3}).
-
-\begin{margintable}
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0.31} & 0.29 & 0.6 \\
-  $H_{Rep}$ & 0.19 & 0.21 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:solution3}
-\end{margintable}
-
-We get another solution when we start this proces with the number 0.32 in the upper left corner. And another one starting with 0.33. And so on. This will give us 10 new solutions. But it does not end there: you could also start with the number 0.301. And with 0.302 etc. This would give us 100 solutions. And so on with 0.3001, or 0.30001 ... It goes on forever. This means there are an infinite number of solutions.
-
-\newthought{However infinite} does not mean that ''anything goes". For example: when we start in the upper left corner with the number 0.55 this would mean that the lower left corner should be -0.05 in order to get the total sum of the left column equal to 0.5 (Table~\ref{tab:impossible}). But our numbers express probabilities and that means that they can only have values between 0 and 1. Negative values or values above 1 do not make sense. So, within the infinite number of possible solutions, some are not allowed.
-
-\begin{margintable}[-2cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0.55} & 0.05 & 0.6 \\
-  $H_{Rep}$ & -0.05 & 0.45 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:impossible}
-\end{margintable}
-
-\section{Conditional probabilities}
-\label{sec:conditional_prob}
-\subsection{Bayes' Theorem}
-
-\newthought{The beautiful thing} about conditional probabilities is that it can capture all possible solutions into one formula! The ''wonder"-formula\sidenote{This is Bayes' theorem. A fascinating book on the subject is:''The theory that would not die" by Sharon Bertsch McGrayne} is
-\begin{equation}
-  P[X \quad AND \quad Y]=P[Y]*P[X|Y]
-\label{eq:dependent}
-\end{equation}
-
-The new symbol P[X|Y] means: the probability that X will occur, \textbf{on conditon that} Y has already occured. You might object that in the case of the Congressional elections this is absurd because the elections for the House and the Senate are held at the same time There is no way of knowing beforehand that, for example, the Republicans have won the Senate, or the Democrats have won the House! I have to ask for some patience here, to postpone your judgement and to read on.
-
-\newthought{Suppose that we are convinced} that the result of the election of the Senate has \emph{no} influence at all on the result of the election of the House. This means that even if we knew the result of the Senate election, we would not change our opinion on the probabilities of the result on the House. We would keep these constant on $P[H_{Dem}]=0.6$ and $P[H_{Rep}]=0.4$ We can write this symbolically as:
-\begin{equation}
-  \begin{split}
-  P[H_{Dem} | S_{Dem}]&=P[H_{Dem} | S_{Rep}] = P[H_{Dem}] =0.6 \\ P[H_{Rep} | S_{Dem}]&=P[H_{Rep} | S_{Rep}] = P[H_{Rep}] =0.4
-  \end{split}
-\label{eq:noinfluenceSenate}
-\end{equation}
-
-When we apply the ''wonder"-fomula (\ref{eq:dependent}) in this situation we get:
-\begin{equation}
-  \begin{split}
-  P[H_{Dem} \quad AND \quad S_{Dem}]&=P[S_{Dem}]*P[H_{Dem}| S_{Dem}]=0.5*0.6=0.3\\
-  P[H_{Dem} \quad AND \quad S_{Rep}]&=P[S_{Rep}]*P[H_{Dem}| S_{Rep}]=0.5*0.6=0.3\\
-  P[H_{Rep} \quad AND \quad S_{Dem}]&=P[S_{Dem}]*P[H_{Rep}| S_{Dem}]=0.5*0.4=0.2\\
-  P[H_{Rep} \quad AND \quad S_{Rep}]&=P[S_{Rep}]*P[H_{Rep}| S_{Rep}]=0.5*0.4=0.2
-  \end{split}
-\label{eq:noinfluenceHouse}
-\end{equation}
-These are exactly the formulas that we used \textbf{intuitively} in Table~\ref{tab:table1}. In other words: our intuition leads us to pick one of the infinite possible solutions. This solution is the one in which we consider that all events are \emph{independent} of each other. The moment we allow the possibility that the events could be \emph{dependent} of each other, we suddenly can access an infinite number of solutions. The question is: how do we express this interdependency into probabilities we can use to make calculations?
-
-\subsection{Limits to possible results}
-\label{subsec:limits}
-Let's take a short theoretical detour, that is not fixed on the problem of the US-elections. We consider two events ($A$ and $B$). The alternative for event $A$ are its complement $A^{C}$. These two events, $A$ and $A^{C}$ are mutually exclusive. This means that if $A$ occurs, $A^{C}$ cannot occur. Idem for $B$ and $B^{C}$. If the probability that $A$ occurs is $P[A]$ than it follows that the probability for $A^{C}$ is equal to $1-P[A]$. Combining the two events $A$ and $B$ and their complements we get the Tabel~\ref{tab:ABstart}.
-
-\begin{margintable}[-5cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $B$ & $B^{C}$ & Sum \\
-  \hline
-  \hline
-  $A$ &  &  & a \\
-  $A^{C}$ &  &  & 1-a \\
-  \hline
-  \hline
-  Sum &b & 1-b & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:ABstart}
-\end{margintable}
-
-The ''intuitive" solution is Table~\ref{tab:ABintuitive}.
-
-\begin{margintable}[-2cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $B$ & $B^{C}$ & Sum \\
-  \hline
-  \hline
-  $A$ & $a*b$ & $a*(1-b)$  & a \\
-  $A^{C}$ & $(1-a)*b$ & $(1-a)*(1-b)$  & 1-a \\
-  \hline
-  \hline
-  Sum &b & 1-b & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:ABintuitive}
-\end{margintable}
-
-As we have seen the alternative solutions depend on the conditinal probabilies such as $P[A|B]$ or $P[A^{C}|B^{C}]$ and so on. These probabilities cannot take on any value: the maximum value is always 1. For example: let's suppose that event A is completely dependent on event B. This means that if B occurs, A will always occur. Symbolically: $P[A|B]=1$. In that case $P[A|B^{C}]=0$. This also means that $P[A \quad AND \quad B^{C}] = P[B^{C}]*P[A|B^{C}]=0$. This means the left bottom corner of Table~\ref{tab:AB1} is zero (0) and from there the rest of the tabel follows. Because all probabilities must be $\geq 0$ this table is only mathematically possible on condition that $(a-b)\geq 0$, or $a \geq b$.
-
-\begin{margintable}[-2cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $B$ & $B^{C}$ & Sum \\
-  \hline
-  \hline
-  $A$ & $b$ & $(a-b)$  & a \\
-  $A^{C}$ & $0$ & $(1-a)$  & 1-a \\
-  \hline
-  \hline
-  Sum &b & 1-b & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:AB1}
-\end{margintable}
-
-We started to fill out Table~\ref{tab:AB1} with a ''0" in the left bottom corner. We got this result because $P[A \quad AND \quad B^{C}] = P[B^{C}]*P[A|B^{C}]$ and $P[A|B^{C}]=0$. We will get the same result for $P[B^{C} \quad AND \quad A] = P[A]*P[B^{C}|A]$ and $P[B^{C}|A]=0$. Now $P[B^{C}|A]=0$ implies that $P[B^{C}|A^{C}]=1$. Full depencency between $B^{C}$ and $A^{C}$ gives the same table and thus the same condition namely that $(a-b)\geq 0$, or $a \geq b$.
-
-When we do this analysis for all completely dependent situations we get the following result:
-
-\begin{enumerate}
-  \item $P[A|B]=1$ or $P[B^{C}|A^{C}]=1$ can only occur if $a \geq b$
-  \item $P[A|B^{C}]=1$ or $P[B|A^{C}]=1$ can only occur if $(a+b) \geq 1$
-  \item $P[A^{C}|B]=1$ or $P[B^{C}|A]=1$ can only occur if $(a+b) \leq 1$
-  \item $P[A^{C}|B^{C}]=1$ or $P[B|A]=1$ can only occur if $b \geq a$
-\end{enumerate}
-
-We can see that some of these conditions are mutually exclusive: you cannot have at the same time that $a \geq b$ and $a \leq b$ or that $(a+b) \geq 1$ and $(a+b) \leq 1$. That means that in every situation there are only two tables possible.
-
-An example: if event $A$ is ''Democrats win the House" or symbolically $H_{Dem}$, then event $A^{C}$ is "Republicans win the House" or $H_{Rep}$. Event $B$ is then $S_{Dem}$ and $B^{C}$ is $S_{Rep}$.\sidenote{We ignore the possibility of independent candidates or sudden switches in allegiance.} Sticking to the probablities we have used thus far we get Table~\ref{tab:ABexample}.
-
-\begin{margintable}[-7cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $B=S_{D}$ & $B^{C}=S_{R}$ & Sum \\
-  \hline
-  \hline
-  $A=H_{D}$ &  &   & $a=0.6$ \\
-  $A^{C}=H_{R}$ &  &  & $(1-a)=0.4$ \\
-  \hline
-  \hline
-  Sum &$b=0.5$ & $(1-b)=0.5$ & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:ABexample}
-\end{margintable}
-
-We can see that $a=0.6 > b=0.4$ and that $(a+b)=1.1 > 1$. This means that when there is \emph{maximum dependency} there are only two tables possible: one with $P[A|B]=1$ or $P[B^{C}|A^{C}]=1$ and the other with $P[A|B^{C}]=1$ or $P[B|A^{C}]=1$. These two tables are given by Table~\ref{tab:ABexample1} and Table~\ref{tab:ABexample2}. All others are mathematically impossible because they will contain negative probabilities. When we add the ''intuitive" solution, where there is \emph{no dependency} (Table~\ref{tab:ABindependent}) we see that it lies neatly in the middle. This means that Table~\ref{tab:ABexample1} gives us the maximum \emph{upward} effect of dependency, while Table~\ref{tab:ABexample2} gives the maximum \emph{downward} effect of dependency.
-
-\begin{margintable}[-4cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & 0.5 & 0.1  & 0.6 \\
-  $H_{Rep}$ & 0 & 0.4 & 0.4 \\
-  \hline
-  \hline
-  Sum &0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{100\% dependent (upward)}
-\label{tab:ABexample1}
-\end{margintable}
-
-\begin{margintable}[-1cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & 0.1 & 0.5  & 0.6 \\
-  $H_{Rep}$ & 0.4 & 0 & 0.4 \\
-  \hline
-  \hline
-  Sum &0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{100\% dependent (downward)}
-\label{tab:ABexample2}
-\end{margintable}
-
-\begin{margintable}[0cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & 0.3 & 0.3  & 0.6 \\
-  $H_{Rep}$ & 0.2 & 0.2 & 0.4 \\
-  \hline
-  \hline
-  Sum &0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{Independent }
-\label{tab:ABindependent}
-\end{margintable}
-
-\subsection{Partial dependency}
-\label{subsec:partial_dependy}
-After the mathematics: let's interpret the formulas and introduce some common sense. We started Table~\ref{tab:ABexample1} with the assumption that $P[A|B]=1$, or in this example $P[H_{Dem}|S_{Dem}]=1$. In words this means that ''If the Democrats win the Senate, it is a sure thing that they will win the House". This seems a reasonable assumption, although an exagerated one. There is probably an \emph{ upward dependency} but it is not with 100\%. Let's say there is a \emph{partial} upward dependency of 50\%. Then the value in the upper left corner of the table will be halfway between ''independent" (0.3) and ''maximum upward dependency" (0.5). This is 0.4. Our forecast with a 50\% dependency is than given by Table~\ref{tab:ABpartdep50}.
-
-\begin{margintable}[-2cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & 0.4 & 0.2  & 0.6 \\
-  $H_{Rep}$ & 0.1 & 0.3 & 0.4 \\
-  \hline
-  \hline
-  Sum &0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{Partial dependency (50\% up)}
-\label{tab:ABpartdep50}
-\end{margintable}
-
-\section{The Likelihood Ratio}
-\label{sec:LR}
-In medical experimentation people are trying to develop tests to detect the presence (or absence) of a certain illness. So they have three basic steps:
-
-\begin{enumerate}
-  \item \emph{before the result of the test is available} the probability of presence of the illness is 60\%, and the probability of absence of the illness is 40\%. (I assume these probabilties are assigned based on other symptoms such as heartrate, blood pressure, temperature ...). In our example of the elections these percentages are $P[H_{Dem}]=0.6$, $P[H_{Rep}]=0.4$, $P[S_{Dem}]=0.5$ and $P[S_{Rep}]=0.5$
-  \item the test results become available
-  \item \emph{after the test results have become available} and assuming that the presence of the illness and a positive test result are \emph{dependent}, we re-evaluate our probabilities of presence or absence of the illness. The re-evaluated probabilities are our conditional probabilities e.g. $P[S_{Dem} | H_{Dem}]$.
-\end{enumerate}
-\medskip
-The \emph{degree of dependency} between the test result and the presence of the illness are initially expressed in words like ''a weak test", ''a moderate increase in the likelihood", ''a strong increase in the likelihood" etc. Experience with tests and illnesses has allowed medical experimenters to translate these words into a number, called the \emph{Likelihood Ratio} (LR+). From the comment by Ken Barns I get that ''a weak test" has an LR+=2, a test that gives ''a moderate increase in the likelihood" has an LR+=6 and a test with a ''a strong increase in the likelihood" gets a LR+=15.
-
-This LR+value is used to calculate the conditional probability. Things get a little complicated here because the calculation uses a different way of looking at probabilities as it works with the \emph{odds}. But the LR+ calculation can be turned into a formula for the conditional probability\sidenote{If you are interested in the intermediate steps, please contact me}:
-\begin{equation}
-P[H_{Dem}|S_{Dem}]=\cfrac{\cfrac{P[H_{Dem}]}{P[H_{Rep}]}*LR^{+}}{\cfrac{P[H_{Dem}]}{P[H_{Rep}]}*LR^{+}+1}
-\end{equation}
-
-\newthought{If we believe} that the outcomes of the House and Senate elections are \emph{not} independent, we now have a tool to calculate the conditional probability. For example: if we believe that a win of the Democrats in the Senate would lead to ''a moderate increase in the likelihood" of a win of the House, we use a LR+=6 and we get:
-\begin{equation}
-P[H_{Dem}|S_{Dem}]=\cfrac{\cfrac{0.6}{0.4}*6}{\cfrac{0.6}{0.4}*6+1}=0.9
-\end{equation}
-
-The ''wonder"-formula gives us a new value for the top left corner of the table
-\begin{equation}
-  P[H_{Dem} \quad AND \quad S_{Dem}]=P[S_{Dem}]*P[H_{Dem}| S_{Dem}]=0.5*0.9=0.45
-\end{equation}
-
-From there on we can complete the whole Table~\ref{tab:LR6}
-
-\begin{margintable}[0cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0.45} & 0.15 & 0.6 \\
-  $H_{Rep}$ & 0.05 & 0.35 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:LR6}
-\end{margintable}
-
-\newthought{The important thing} to realize here is that we did two things:
-
-\begin{enumerate}
-  \item we admitted that there is a relationship between the elections of the House and of the Senate
-  \item we qualified this dependency in words (''a moderate increase in the likelihood") and translated this into a Likelihood Ratio (in this case LR+=6)
-\end{enumerate}
-
-\section{Working the other way round}
-In \ref{sec:LR} we translated words (''a moderate increase in the likelihood")  into a Likelihood Ratio (LR+=6). A lot of research has gone into the quantifying the expressions we use for probabilities.
-
-But we can do it inversely and go from a conditional probability to a Likelyhood Ratio. The formula for the relationship between ''winning the House" on condition of ''winning the Senate" is:
-\begin{equation}
-LR^{+}=\cfrac{P[H_{Dem} | S_{Dem}]}{\cfrac{P[H_{Dem}]}{P[H_{Rep}]}*(1-P[H_{Dem}|S_{Dem}])}
-\label{eq:LRfromProb}
-\end{equation}
-
-A recent aricle in ''Revolutions"\sidenote{\url{http://blog.revolutionanalytics.com/2017/08/probably-more-probably-than-probable.html}} gives Figure~\ref{fig:perceptions}
-
-\begin{figure}
-\includegraphics[width=1\textwidth]{Graphics/perceptions}
-\caption{Perceptions of Probability}
-\label{fig:perceptions}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{figure}
-
-For the case that $P[H_{Dem}]=0.6$ (and consequently $P[H_{Rep}=0.4]$) we can calculate the corresponding values of LR+ (lower boundary, modus and upper boundary):
-<<echo=FALSE>>=
-perceptions <- data.frame(Expression=c("Almost Certainly", "Highly Likely", "Very Good Chance", "Probable", "Likely", "We believe", "Probably", "Better Than Even", "About Even", "We Doubt", "Improbable", "Unlikely", "Probably Not", "Little Chance", "Almost No Chance", "Highly Unlikely", "Chances Are Slight"), Lower=c(70, 60, 60, 44, 50, 42, 40, 44, 40, 5, 2, 5, 10, 6, 0, 3, 6), Modus=c(90, 87, 75, 70, 68, 75, 73, 58, 50, 30, 25, 25, 30, 24, 11, 13, 17), Upper=c(100, 98, 92, 90, 90, 98, 90, 70, 60, 50, 55, 45, 55, 40, 25, 40, 50))
-perceptions[,-1] <- perceptions[,-1]/100
-perceptions$LRlower <- perceptions$Lower/((0.6/0.4)*(1-perceptions$Lower))
-perceptions$LRmodus <- perceptions$Modus/((0.6/0.4)*(1-perceptions$Modus))
-perceptions$LRupper <- perceptions$Upper/((0.6/0.4)*(1-perceptions$Upper))
-perceptions[, 5:7] <- round(perceptions[, 5:7],2)
-@
-
-<<>>=
-perceptions
-@
-
-We can see that the LR+scale goes from 0 to $+\infty$ while the scale of the conditional probabilities goes from 0 to 1. This means that using the Likelihood Ratio gives us more freedom to adjust the value of LR+. We can also see that these perceptions of probability give \emph{lower} values for LR+ than those that are used in medical experimentation.
-
-\section{Why are we concentrating on a House win \emph{given} a win in the Senate?}
-
-The top left corner of Table~\ref{tab:LR6} gives the situation assuming that after a win in the Senate, chances of winning the House are improving. This improvement is quantified as an LR+=6. But we could get the same result if, after winning the House the chances of winning the Senate improve. So why don't we look at the conditional probability that the Democrats win the Senate \emph{given} that they have won the Senate? We found the value of 0.45 by using the ''wonder" fomula:
-\begin{equation}
-P[H_{Dem} \quad AND \quad S_{Dem}]=P[S_{Dem}]*P[H_{Dem}|S_{Dem}]=0.5*0.9=0.45
-\end{equation}
-
-But the top left corner can equally be written as $P[S_{Dem} \quad AND \quad H_{Dem}]$. This expresses the same situation: the Democrats win both the House and the Senate. In that case it should also be true that:
-\begin{equation}
-P[S_{Dem} \quad AND \quad H_{Dem}]=P[H_{Dem}]*P[S_{Dem}|H_{Dem}]=0.45
-\end{equation}
-
-This means that $P[S_{Dem}|H_{Dem}]=\frac{0.45}{0.6}=0.75$. With equation~\ref{eq:LRfromProb} we can calculate the necessary value of LR+. It turns out to be equal to 3. As Ken Barns says: ''This represents a slight increase in the likelihood that winning the House leads to winning the Senate. Dems winning the Senate is a more useful tool to predict their House results ...".
-
-\section{What are the limits of the probabilities?}
-
-Probabilities cannot be smaller than 0 or greater than 1. The starting value in the top left corner was calculated as
-\begin{equation}
-P[H_{Dem} \quad AND \quad S_{Dem}]=P[S_{Dem}]*P[H_{Dem}|S_{Dem}]=0.5*P[H_{Dem}|S_{Dem}]
-\end{equation}
-
-The minimum value for $P[H_{Dem}|S_{Dem}]$ is 0 and the maximum value is 1. This means that the top left corner starting value can only be in the range of 0 to 0.5. Even 0 is not allowed because it would lead to a negative value in the low right corner (Table~\ref{tab:lowrightneg}).
-\begin{margintable}[-2cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0} & 0.6 & 0.6 \\
-  $H_{Rep}$ & 0.5 & -0.1 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:lowrightneg}
-\end{margintable}
-
-So the limits are given by Table~\ref{tab:limmin} and Table~\ref{tab:limmax}
-\begin{margintable}[0cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0.1} & 0.5 & 0.6 \\
-  $H_{Rep}$ & 0.4 & 0 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:limmin}
-
-\end{margintable}
-\begin{margintable}[0cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0.5} & 0.1 & 0.6 \\
-  $H_{Rep}$ & 0 & 0.4 & 0.4 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:limmax}
-\end{margintable}
-
-\section{What's so special about the top left corner?}
-
-In the examples we have until now started the calculation by putting a number in the top left corner of the table. But it is clear that we can start in any of the four corners. Once we have put in a number there, the rest follows\sidenote{This has to do with the fact that we have a system of four equations (two rows must give a given sum total, two colums must give a given sum total). These equations are however not independent. That is the reason that we get an infinite number of solutions. The system has one degree of freedom, which means we can only choose one corner freely, and then the rest is fixed.}.
-
-I don't know yet if the starting spot is important. I'm looking into it.
-
-\section{Why are the House and the Senate elections dependent?}
-It seems strange that the result of the Senate elections could be influenced by the results of the House elections (and vice versa), because people vote at the same time for House and Senate. However: polls can give a clear indication that things are very likely to move in a certain direction. And while polls are only what they are, and should be treated carefully, it is not unthinkable that voters who have the impression that e.g. the House is going to the Democrats, or that the Senate is more or less guaranteed for the Republicans, will take this into account. ''Taking it into account" can mean very many things:
-
-\begin{itemize}
-  \item They will try to block the other party from controlling the Senate or the House.
-  \item They are enthousiastic and there will be a high turnout in order to get control of Congress as a whole
-  \item Voters get disheartened and do not bother to vote
-  \item ....
-\end{itemize}
-
-The Alabama election has shown that the Republicans suffered from a poor turnout, while the Democrats got their voters going. I believe that the positive effects (large turnout, enthousiasm) is more likely for the Democrats, while the negative effects (can't be bothered, not willing to vote for the other candidate after a preselection run) are more likely for the Republicans. Let's do an exercise:
-
-If it starts to look likely that the Democrats will win the House it will influence the probability $P[H_{Dem}]$ which at the moment stands at 0.6. For example it could rise to 0.65: $P[H_{Dem}]=0.65$. The probability of a Republican win of the House then falls to $P[H_{Rep}]=0.35$\\
-
-Possibly this does not change the probabilities for the Senate. There are much more democratic senatorial seats up for election. There are more democratic senatorial seats marked as ''toss up". At the moment the outlook for the Senate is 50/50 and there is no real reason to change this.
-However: an improved outlook for winning the House could change the conditional probabilities. If the ''Alabama-effect" switches on it could change to''Likely" improve the chances of winning the Senate. The word ''Likely" translates in a LR+=1.4 which gives a $P[S_{Dem} | H_{Dem}]=0.722$. This would change the top left corner into 0.469 and give us Table~\ref{tab:improvedHouse}.
-
-\begin{margintable}[0cm]
-\centering
-\begin{tabular}{ l | r | r || r | }
-    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
-  \hline
-  \hline
-  $H_{Dem}$ & \textbf{0.469} & 0.181 & 0.65 \\
-  $H_{Rep}$ & 0.031 & 0.319 & 0.35 \\
-  \hline
-  \hline
-  Sum & 0.5 & 0.5 & 1 \\
-\end{tabular}
-\caption{ }
-\label{tab:improvedHouse}
-\end{margintable}
-
-
-What is remarkable in these calculation is how delicate they are! For example: change $P[H_{Dem}]$ to 0.7 and the resulting table will become impossible because it contains a negative probability in the lower right corner. The ''infinite number" of solutions are not so infinite after all.
-
-So I will look out for what the FiveThirtyEight and Cook websites indicate for the likely win in Senate and House + the results of elections in between (turnout for Republicans and Democrats) and the evolution of Trump's approval rate.
 
 \chapter{Forecasts}
 
@@ -1272,21 +721,26 @@ Big lead (17,83\%) for Trump (57,94\%) vs. Clinton (40,11\%) in the 2016 electio
 \subsection{Nebraska}
 Huge lead (25,05\%) for Trump (58,75\%) vs. Clinton (33,70\%) in the 2016 election
 
-\section{2018-02-05}
-\newthought{People have not changed there mind since 2016}.
 
-<<label=leadCvsdisapproval,fig=TRUE,include=FALSE, echo=FALSE>>=
-ggplot(data=Senate) +
-  geom_point(aes(x=LeadClinton16, y=Disapprove, color=Party)) +
-  labs(title="Strong correlation between the percentage\ndifference in 2016 and dissaproval of Trump", x="Lead of Clinton vs. Trump in 2016", y="Disapproval rate of Trump", caption="https://en.wikipedia.org/wiki/United_States_presidential_election,_2016") +
-  JT.theme
-@
+\section{2018-02-17}
+\label{sec:20180217}
 
-\begin{marginfigure}[0cm]
-\includegraphics[width=1\textwidth]{USC-leadCvsdisapproval}
-\caption{}
-\label{fig:leadCvsdisapproval}
-\setfloatalignment{b}% forces caption to be bottom-aligned
-\end{marginfigure}
+The basis for this forecast is the calculations for Senate and House in this revised document (2018-02-17) and the document ''Conditional Probabilities and Likelihood Ratios".
+
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 17.5\% & 52.5\% & 70\% \\
+  $H_{Rep}$ & 5.8\% & 24.2\% & 30\% \\
+  \hline
+  \hline
+  Sum & 23.3\% & 67.7\% & 1 \\
+\end{tabular}
+\caption{Forecast 4}
+\label{tab:after_confusion_matrix}
+\end{margintable}
 
 \end{document}
