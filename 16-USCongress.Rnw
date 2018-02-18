@@ -342,8 +342,8 @@ ggplot() +
        subtitle="210 seats = gain of 17",
        x="Number of Democratic seats", 
        caption="Based on ratings as published in the New York Times, 2018-02-07") +
-  scale_x_continuous(breaks=seq(200, 400, by=5), 
-                     labels= seq(200,400, by=5)) +
+  scale_x_continuous(breaks = seq(150, 250, by=5),
+                     labels = seq(150, 250, by=5)) +
   JT.theme
 @
 
@@ -456,10 +456,6 @@ The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summar
 
 \subsection{Connecting the micro and the macro}
 
-The easiest way is to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific election), is to take the probability on the micro level, and increase it \emph{when the approval rate is below 60}. The limit of 60 comes from Figure~\ref{fig:midterm1house_lm}. It is the approval rate where the president's party does not lose any house seats. The degree of the upgrade will then depend on the difference between the actual approval rate and the limit of 60. Let us try an upgrade with one level: a ''Likely D" on the micro level becomes a ''Safe D" on the combined micro-macro level. This is equivalent of an increase of the probability of a democratic win with 10\%. 
-
-The results of this upgrade are given in Figure~\ref{fig:housesimfull}. The Democrats get 245 seats which is more than enough to win the House. The calculated probability for a democratic win of the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
-
 <<echo=FALSE>>=
 scores.ref <- data.frame(rating=c("Sure D", "Safe D", "Likely D", "Lean D", "Tilt D", "Toss up", "Tilt R", "Lean R", "Likely R", "Safe R", "Sure R"), Prob.Dem=c(0.999, 0.95, 0.85, 0.75, 0.65, 0.5, 0.35, 0.25, 0.15, 0.05, 0.001))
 @
@@ -479,6 +475,10 @@ for (i in 1:N) {
 race.result.House <- rowSums(race.House)
 prob.House <- sum(race.result.House > 218)/N
 @
+
+The easiest way is to link the macro (the approval rate of the president) with the micro (the likelihood of a win by the Democratic candidate in a specific election), is to take the probability on the micro level, and increase it \emph{when the approval rate is below 60}. The limit of 60 comes from Figure~\ref{fig:midterm1house_lm}. It is the approval rate where the president's party does not lose any house seats. The degree of the upgrade will then depend on the difference between the actual approval rate and the limit of 60. Let us try an upgrade with one level: a ''Likely D" on the micro level becomes a ''Safe D" on the combined micro-macro level. This is equivalent of an increase of the probability of a democratic win with 10\%. 
+
+The results of this upgrade are given in Figure~\ref{fig:housesimfull}. The Democrats get 245 seats which is more than enough to win the House. The calculated probability for a democratic win of the House in this case is \Sexpr{round(100*prob.House,2)}\%. 
 
 <<label=housesimfull,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
@@ -548,7 +548,11 @@ We are not asked to give the probabilities for the winning of the Senate or the 
 
 \newthought{Ken Barns} posted a comment in the Good Judgement Open. In it he discussed a way to calculate the probability that e.g. the Democrats would win both the House and the Senate. He used the concept of the \emph{Likelihood Ratio}. I must admit I was not familiar with this. But it is linked to \emph{conditional probabilities}, and I got intrigued. However: it soon became clear that things are not so easy. I cannot put all the material I found on the subject in this document because it would become too long. I have put everything in another document called ''Conditional Probabilities and Likelihood Ratio". The matrix we are trying to fill out is aptly called the ''Confusion Matrix"! I will make the document available later. The mathematics are not difficult in themselves (mostly just fraction), but the matter becomes rather overwhelming.
 
-\newthought{What are the conclusions about the matrix}? First: the starting data are crucial. Usually we start with the probabilities of a win for the Democrats in the Senate and in the House as a given. We take these probabilities from worthies like Nate Silver, or our own calculations. Then we try to find the probabilities of the combinations. However: that is not necessary the best approach. You absolutely need one of the probabilities (Senate of House) to start with. But once you have chosen that one (for example: probability of a win of the House for the Democrats = $P[H_{Dem}]=70\%$), you need two other choices. One of these could be the probability that the Democrats win the Senate = $P[S_{Dem}]=20\%$, but that is not necessary. You can also start with two of the conditional probabilities, or one conditional probability and a Likelihood Ratio etc. At the moment this leads me to my forecast of \ref{sec:20180217}.
+\section{What are the conclusions about the matrix?} 
+
+First: the starting data are crucial. Usually we start with the probabilities of a win for the Democrats in the Senate and in the House as a given. We take these probabilities from worthies like Nate Silver, or our own calculations. Then we try to find the probabilities of the combinations. 
+
+Second: starting with the base probabilities of a House win and a Senate win is not necessary the best approach. You absolutely need one of these (a House win OR a Senate win) to start with. But once you have chosen that one (for example: probability of a win of the House for the Democrats = $P[H_{Dem}]=70\%$), other starting positions are possible. For example you can also start with two of the eight conditional probabilities, or one conditional probability and a Likelihood Ratio etc. At the moment this leads me to my forecast of \ref{sec:20180217}.
 
 
 \chapter{Forecasts}
