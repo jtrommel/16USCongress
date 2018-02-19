@@ -502,15 +502,12 @@ ggplot() +
 <<echo=FALSE>>=
 House$DemProbCor <- ifelse((House$DemProb + 0.1) > 1, 0.999, (House$DemProb + 0.05))
 N <- 10000
-race.House <- matrix(0, N, sum(House$Number))
 set.seed(2018)
-for (i in 1:N) {
-    race.House[i, 1:House$Number[1]] <- rbinom(House$Number[1], 1, House$DemProbCor[1])
-    race.House[i, (House$Number[1] + 1) : (House$Number[1] + House$Number[2])] <- rbinom(House$Number[2], 1, House$DemProbCor[2])
-    race.House[i, (House$Number[1] + House$Number[2] + 1) : (House$Number[1] + House$Number[2] + House$Number[3])] <- rbinom(House$Number[3], 1, House$DemProbCor[3])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4])] <- rbinom(House$Number[4], 1, House$DemProbCor[4])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProbCor[5])
-}
+race.House <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProbCor[1])))
+race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[2], 1, House$DemProbCor[2]))))
+race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[3], 1, House$DemProbCor[3]))))
+race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[4], 1, House$DemProbCor[4]))))
+race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[5], 1, House$DemProbCor[5]))))
 race.result.House <- rowSums(race.House)
 prob.House <- sum(race.result.House > 218)/N
 @
