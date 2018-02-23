@@ -134,6 +134,7 @@ Additionaly the seats up for election are not distributed evenly between the two
 
 \newpage
 \subsection{The micro view: the State level}
+\label{subsec:senate_micro}
 \newthought{The Senate seems to be the hardest} to win for the Democrats. Nate Silver suggested\sidenote{''Are Democrats' Senate Chances in 2018 Overrated?" | Five Thirty Eight} a detailed method to calculate the probabilities of a win (or loss) \emph{on the State level}. The result of a simulation (N=10.000) based on the interpretation by Nate Silver of the probabilities of ''Safe"=0.95, ''Likely"=0.85, ''Lean"=0.75, ''Tilt"=0.60 (not included in the article) and ''Toss up"=0.50 is given in Figure~\ref{fig:senatesim}.
 
 <<echo=FALSE>>=
@@ -146,21 +147,21 @@ Senate$DemProb <- (JT.ProbCalc(JT.Cook, scores) + JT.ProbCalc(JT.InsideElections
 # Simulation
 # Number of simulations
 N <- 10000
-race <- matrix(0, N, nrow(Senate))
+race.senate <- matrix(0, N, nrow(Senate))
 set.seed(2018)
 for (i in 1:nrow(Senate)) {
-    race[,i] <- rbinom(N, 1, Senate$DemProb[i])
+    race.senate[,i] <- rbinom(N, 1, Senate$DemProb[i])
 }
-race.result <- rowSums(race)
-prob <- sum(race.result > 27)/N
+race.senate.result <- rowSums(race.senate)
+prob <- sum(race.senate.result > 27)/N
 @
 
 <<label=senatesim,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
-  aes(race.result) +
+  aes(race.senate.result) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
   labs(title="Senate: simulation on the micro level", subtitle="23 seats = loss of 3! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
-  scale_x_discrete(limits=min(race.result):max(race.result), labels = c(min(race.result):max(race.result))) +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
   JT.theme
 @
 
@@ -171,9 +172,10 @@ ggplot() +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-From this simulations we can see that the Democrats will (only) win \Sexpr{round(mean(race.result),0)} seats, which is a loss of \Sexpr{26 - round(mean(race.result),0)} seats! The probability of winning at least 28 seats is only \Sexpr{100*round(prob,2)} \%.
+From this simulations we can see that the Democrats will (only) win \Sexpr{round(mean(race.senate.result),0)} seats, which is a loss of \Sexpr{26 - round(mean(race.senate.result),0)} seats! The probability of winning at least 28 seats is only \Sexpr{100*round(prob,2)} \%.
 
 \subsection{The macro view: taking correlation into account}
+\label{subsec:senate_macro}
 Nate Silver argues that calculating state by state assumes that each state is run in a ''vacuum", completely independent of all others. However, the races are interconnected by factors that supersede the state level. 
 
 \newthought{The approval rating of the president} is historically linked with the net number of seats won (positive) or lost (negative). This is clearly a factor that is above the state level and influences the total number of seats (not a particular one).
@@ -279,7 +281,7 @@ ggplot(midterm1high, aes(x=Approval, y=Gain.Senate)) +
 \newthought{The generic ballot polls} could also give an indication of the more general feeling among the population. This also rises above the State level and could play a part. First investigations based on numbers given by The Times\sidenote{https://www.nytimes.com/2017/12/20/upshot/democrats-2018-congressional-elections-polling.html} do not seem to support this however. Further inquiry necessary.
 
 \subsection{Connecting the micro and the macro}
-
+\label{subsec:senata_micro_macro}
 \newthought{The 2018 Senate election} has a \emph{first time president} who has the luxury that the number of seats up for election of his own party is \emph{the lowest} compared with the ''opposition" since 1946. He should not worry too much about his approval rate because it probably will not change the distribution of seats in the Senate. A zero net gain/loss means that the Democrats could hold onto their 26 seats (independents included), which is higher than what the micro level simulation predicts. The chance of maintaining the status quo is therefore possible because Figure~\ref{fig:midterm1low_senate_lm} shows that on average there is a net loss of 2 seats for the president's party. However: this should be interpreted very cautiously because the data set (first time presidents + Seats up ratio >=1) has only 5 data points.
 
 Can the Democrats get to 28 seats? It is not impossible, but for the moment very unlikely.
@@ -317,17 +319,13 @@ House
 # Simulation
 # Number of simulations
 N <- 10000
-race.House <- matrix(0, N, sum(House$Number))
 set.seed(2018)
-for (i in 1:N) {
-    race.House[i, 1:House$Number[1]] <- rbinom(House$Number[1], 1, House$DemProb[1])
-    race.House[i, (House$Number[1] + 1) : (House$Number[1] + House$Number[2])] <- rbinom(House$Number[2], 1, House$DemProb[2])
-    race.House[i, (House$Number[1] + House$Number[2] + 1) : (House$Number[1] + House$Number[2] + House$Number[3])] <- rbinom(House$Number[3], 1, House$DemProb[3])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4])] <- rbinom(House$Number[4], 1, House$DemProb[4])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProb[5])
+race.House.micro <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProb[1])))
+for (i in 2:5) {
+  race.House.micro <- cbind(race.House.micro, t(replicate(N, rbinom(House$Number[i], 1, House$DemProb[i]))))
 }
-race.result.House <- rowSums(race.House)
-prob.House <- sum(race.result.House > 218)/N
+race.result.House.micro <- rowSums(race.House.micro)
+prob.House <- sum(race.result.House.micro > 218)/N
 @
 
 <<>>=
@@ -336,7 +334,7 @@ print(paste("Probability of 218 or more seats = ", round(prob.House*100,2), "%")
 
 <<label=housesim,fig=TRUE,include=FALSE, echo=FALSE>>=
 ggplot() +
-  aes(race.result.House) +
+  aes(race.result.House.micro) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
   labs(title="House simulation", 
        subtitle="210 seats = gain of 17",
@@ -420,7 +418,7 @@ y <- -140.5292 + 2.2224*40
 y
 @
 
-The confidence interval is large: -35 to -67 seats. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
+The confidence interval is large: -38 to -64 seats. However: as the Republicans can only afford a loss of 25 seats, the probability that the Democrats take the House seems high.
 
 \subsection{Are other factors better predictors?}
 
@@ -455,6 +453,7 @@ modterm1ratio <- lm(Gain.House ~ Ratio, data=midterm1)
 The $R^{2}$-value for the model based on the \emph{Ratio} is \Sexpr{round(summary(modterm1ratio)$r.squared,2)}. No improvement.
 
 \subsection{Connecting the micro and the macro}
+\label{subsec:house_micro_macro}
 
 <<echo=FALSE>>=
 scores.ref <- data.frame(rating=c("Sure D", "Safe D", "Likely D", "Lean D", "Tilt D", "Toss up", "Tilt R", "Lean R", "Likely R", "Safe R", "Sure R"), Prob.Dem=c(0.999, 0.95, 0.85, 0.75, 0.65, 0.5, 0.35, 0.25, 0.15, 0.05, 0.001))
@@ -463,14 +462,10 @@ scores.ref <- data.frame(rating=c("Sure D", "Safe D", "Likely D", "Lean D", "Til
 <<echo=FALSE>>=
 House$DemProbCor <- ifelse((House$DemProb + 0.1) > 1, 0.999, (House$DemProb + 0.1))
 N <- 10000
-race.House <- matrix(0, N, sum(House$Number))
 set.seed(2018)
-for (i in 1:N) {
-    race.House[i, 1:House$Number[1]] <- rbinom(House$Number[1], 1, House$DemProbCor[1])
-    race.House[i, (House$Number[1] + 1) : (House$Number[1] + House$Number[2])] <- rbinom(House$Number[2], 1, House$DemProbCor[2])
-    race.House[i, (House$Number[1] + House$Number[2] + 1) : (House$Number[1] + House$Number[2] + House$Number[3])] <- rbinom(House$Number[3], 1, House$DemProbCor[3])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4])] <- rbinom(House$Number[4], 1, House$DemProbCor[4])
-    race.House[i, (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + 1) : (House$Number[1] + House$Number[2] + House$Number[3] + House$Number[4] + House$Number[5])] <- rbinom(House$Number[5], 1, House$DemProbCor[5])
+race.House <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProbCor[1])))
+for (i in 2:5) {
+  race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[i], 1, House$DemProbCor[i]))))
 }
 race.result.House <- rowSums(race.House)
 prob.House <- sum(race.result.House > 218)/N
@@ -500,14 +495,13 @@ ggplot() +
 \end{marginfigure}
 
 <<echo=FALSE>>=
-House$DemProbCor <- ifelse((House$DemProb + 0.1) > 1, 0.999, (House$DemProb + 0.05))
+House$DemProbCor <- ifelse((House$DemProb + 0.05) > 1, 0.999, (House$DemProb + 0.05))
 N <- 10000
 set.seed(2018)
 race.House <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProbCor[1])))
-race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[2], 1, House$DemProbCor[2]))))
-race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[3], 1, House$DemProbCor[3]))))
-race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[4], 1, House$DemProbCor[4]))))
-race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[5], 1, House$DemProbCor[5]))))
+for (i in 2:5) {
+  race.House <- cbind(race.House, t(replicate(N, rbinom(House$Number[i], 1, House$DemProbCor[i]))))
+}
 race.result.House <- rowSums(race.House)
 prob.House <- sum(race.result.House > 218)/N
 @
@@ -533,8 +527,18 @@ ggplot() +
 \setfloatalignment{b}% forces caption to be bottom-aligned
 \end{marginfigure}
 
-\newthought{Conclusion}. The result of the upgrade and the prediction of the number of seats won by the model based on the approval rating point in the same direction. This is not surprising: because all 435 seats are up for election, a small ''general" effect will work on all those seats shifting the result in favor of the Democrats. Winning the House seems much more likely! Only a small ''macro" push will give the Democrats a majority in the House. I put the probability of the Democrats winning the House for the moment at 70\%.
+\newthought{Conclusion}. The result of the upgrade and the prediction of the number of seats won by the model based on the approval rating point in the same direction. This is not surprising: because all 435 seats are up for election, a small ''general" effect will work on all those seats shifting the result in favor of the Democrats. Winning the House seems much more likely! Only a small ''macro" push will give the Democrats a majority in the House. However: this model is very volatile: a change from 0\% macro influence to 5\% shifts the number of seats from 210 to 230. I will work with a moderate 3\% macro influence. I put the probability of the Democrats winning the House for the moment at 75\%.
 
+<<echo=FALSE>>=
+House$DemProbCor <- ifelse((House$DemProb + 0.03) > 1, 0.999, (House$DemProb + 0.03))
+N <- 10000
+set.seed(2018)
+race.House.combi <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProbCor[1])))
+for (i in 2:5) {
+  race.House.combi <- cbind(race.House.combi, t(replicate(N, rbinom(House$Number[i], 1, House$DemProbCor[i]))))
+}
+race.result.House.combi <- rowSums(race.House.combi)
+@
 
 \newpage
 \chapter{Filling out the matrix}
@@ -743,5 +747,69 @@ The basis for this forecast is the calculations for Senate and House in this rev
 \caption{Forecast 4}
 \label{tab:after_confusion_matrix}
 \end{margintable}
+
+\section{2018-02-23}
+
+I am including two other GJO questions:
+\begin{enumerate}
+  \item Which party will hold a majority in the US Senate after the 2018 midterm elections?
+  \begin{itemize}
+    \item Democratic Party, with 53 senators or more
+    \item Democratic Party, with less than 53 senators
+    \item Republican Party, with 53 senators or more
+    \item Republican Party, with less than 53 senators
+  \end{itemize}
+  \item Which party will hold a majority in the US House of Representatives after the 2018 midterm elections? Possible answers:
+  \begin{itemize}
+    \item Democratic Party, with 230 or more representatives
+    \item Democratic Party, with less than 230 representatives
+    \item Republican Party, with 230 or more representatives
+    \item Republican Party, with less than 230 representatives
+  \end{itemize}
+\end{enumerate}
+
+\newthought{Senate question}. The simulation (\ref{subsec:senate_micro}) shows a near normal distribution with mean=23 and standard deviation=1.75. The micro-macro effect (\ref{subsec:senata_micro_macro}) would keep them at 49 seats. 
+The chances that
+\begin{itemize}
+  \item for the Democrats to have a majority of 53 and more means they need to win at least 4 extra seats. In the micro simulation (mean=23) that would mean 27 or more. The probability for that is \Sexpr{100*sum(race.senate.result>26)/N}\%
+  \item the probability that the Democrats have a majority less than 53 (51 or 52 senators) is \Sexpr{100*sum(race.senate.result==25)/N + 100*sum(race.senate.result==26)/N}\%
+  \item the probability that Republicans have a majority less than 53 (50, 51 or 52 senators) is \Sexpr{100*sum(race.senate.result==22)/N + 100*sum(race.senate.result==23)/N + 100*sum(race.senate.result==24)/N}\%
+  \item the probability that the Republicans have a majority of 53 and more is \Sexpr{100*sum(race.senate.result<22)/N}\%
+\end{itemize}
+
+This also means that the probability that the Democrats win the Senate is \Sexpr{100*sum(race.senate.result>24)/N}\%.
+
+\newthought{House question}. The Democrats now have 197 seats in the House.The simulation (\ref{subsec:house_micro_macro}) with a moderate +5\% upgrade gives a mean of 230 seats. The probabilities are:
+
+<<echo=FALSE>>=
+p1 <- 100*sum(race.result.House.combi>=230)/N
+p2 <- 0
+for (i in (218:229)) {
+  p2 <- p2 + 100*sum(race.result.House.combi==i)/N
+}
+p3 <- 0
+for (i in (206:217)) {
+  p3 <- p3 + 100*sum(race.result.House.combi==i)/N
+}
+p4 <- 100*sum(race.result.House.combi<=205)/N
+@
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{p1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{p2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{p3}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{p4}\%
+  \end{itemize}
+
+This also means that the probability that the Democrats win the House is \Sexpr{p1+p2}\%. For the main question I put it at 75\%.
+
+\newthought{Main question}.  Based on what I found out\sidenote{see ''Conditional Probabilities and Likelihood Ratios"} I recalculated the matrix. It is now given by Figure~\ref{fig:main1}.
+
+\begin{figure*}
+\includegraphics[width=0.6\textwidth]{Graphics/main1.png}
+\caption{Will the Democrats gain control of Congress in the 2018 midterm elections?}
+\label{fig:main1}
+\setfloatalignment{c}% forces caption to be bottom-aligned
+\end{figure*}
 
 \end{document}
