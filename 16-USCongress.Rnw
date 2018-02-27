@@ -797,8 +797,8 @@ p4 <- 100*sum(race.result.House.combi<=205)/N
 \begin{itemize}
     \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{p1}\%
     \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{p2}\%
-    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{p3}\%
-    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{p4}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{p4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{p3}\%
   \end{itemize}
 
 This also means that the probability that the Democrats win the House is \Sexpr{p1+p2}\%. For the main question I put it at 75\%.
@@ -811,5 +811,57 @@ This also means that the probability that the Democrats win the House is \Sexpr{
 \label{fig:main1}
 \setfloatalignment{c}% forces caption to be bottom-aligned
 \end{figure*}
+
+\section{2018-03-01}
+
+\subsection{Senate}
+Update of the micro Senate scoring by Cook, Inside Elections and Sabato/:
+
+\begin{itemize}
+  \item Cook: Texas from ''Safe R" to ''Likely R", North-Dacota from ''Lean D" to ''Toss up"
+  \item Inside Elections: no changes
+  \item Sabato: North Dacota: ''Lean D" to ''Toss up", Minnesota II: ''Lean D" to ''Likely D" and Virginia: ''Likely D" to ''Safe D"
+\end{itemize}
+
+<<echo=FALSE>>=
+Senate <- data.frame(State=c("Mississippi","Nebraska","Utah","Wyoming","Texas","Tennessee","Arizona","Indiana","Missouri","Nevada","West Virginia","Florida","North Dakota","Minnesota","Montana","Wisconson","Ohio","Pennsylvania","Maine","Michigan","New Jersey","Virginia","California","Connecticut","Delaware","Hawaii","Maryland","Massachusetts","Minnesota","New Mexico","New York","Rhode Island","Vermont","Washington"), Incumbent=c("Wicker","Fischer", NA,"Barasso","Cruz",NA,NA,"Donelly","McCaskill","Heller","Manchin","Nelson","Heitkamp",NA, "Tester","Baldwin","Brown","Casey","King","Stabenow","Menendez","Kaine","Feinstein","Murphy","Carper","Hirono","Cardin","Warren","Klobuchar","Heinrich","Gillibrand","Whitehouse","Sanders","Cantwell"), Party=c(rep("R",7),rep("D",2),"R",rep("D",24)), Cook=c(rep("Safe R",4), "Likely R", rep("Toss up",6), "Lean D", "Toss up", "Safe D",rep("Likely D",2),"Lean D","Likely D","Lean D",rep("Likely D",2),rep("Safe D",13)), InsideElections=c(rep("Safe R",5),"Likely R",rep("Toss up",5),"Tilt D","Toss up","Likely D",rep("Tilt D",2),rep("Lean D",2),rep("Safe D",16)),Sabato=c(rep("Safe R",4),rep("Likely R",2),rep("Toss up",4),"Lean D","Toss up","Toss up", rep("Lean D",4),rep("Likely D",4),rep("Safe D",13)))
+Senate %>% select(Party, Cook) -> JT.Cook
+Senate %>% select(Party, InsideElections) -> JT.InsideElections
+Senate %>% select(Party, Sabato) -> JT.Sabato
+scores <- c(0.95, 0.85, 0.75, 0.6, 0.5)
+Senate$DemProb <- (JT.ProbCalc(JT.Cook, scores) + JT.ProbCalc(JT.InsideElections, scores) + JT.ProbCalc(JT.Sabato, scores))/3
+# Simulation
+# Number of simulations
+N <- 10000
+race.senate <- matrix(0, N, nrow(Senate))
+set.seed(2018)
+for (i in 1:nrow(Senate)) {
+    race.senate[,i] <- rbinom(N, 1, Senate$DemProb[i])
+}
+race.senate.result <- rowSums(race.senate)
+prob <- sum(race.senate.result > 27)/N
+@
+
+<<label=senatesim,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.senate.result) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Senate: simulation on the micro level", subtitle="23 seats = loss of 3! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-senatesim}
+\caption{ }
+\label{fig:senatesim}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+The small changes in the evaluation by Cook and Sabato do not change the micro simulation. No reason to change the forecast on the Senate.
+
+\subsection{The House}
+
+No changes in the evaluation by The NY Times\sidenote{their update from 2018-02-07}, so no update necessary.
 
 \end{document}
