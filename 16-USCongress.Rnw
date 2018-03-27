@@ -181,7 +181,7 @@ Nate Silver argues that calculating state by state assumes that each state is ru
 \newthought{The approval rating of the president} is historically linked with the net number of seats won (positive) or lost (negative). This is clearly a factor that is above the state level and influences the total number of seats (not a particular one).
 
 <<label=midterm_senate1,fig=TRUE,include=FALSE, echo=FALSE>>=
-midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","Seats.up.ratio","Generic.Lead"), dec=",", na.strings="NA", stringsAsFactors = FALSE)
+midterm <- read.csv("data/midterm_results.csv",header=TRUE, sep=";",col.names=c("Year","President","Party", "Approval","Disapproval","Gain.Senate","Gain.House", "Term","Seats.up.ratio","Generic.Lead","Turnout.advantage.incumbent"), dec=",", na.strings="NA", stringsAsFactors = FALSE)
 meanloss.senate <- data.frame(x = c(-Inf, Inf),
                      y = round(mean(midterm$Gain.Senate),1),
                      mean.loss = factor(round(mean(midterm$Gain.Senate), 1)))
@@ -863,5 +863,61 @@ The small changes in the evaluation by Cook and Sabato do not change the micro s
 \subsection{The House}
 
 No changes in the evaluation by The NY Times\sidenote{their update from 2018-02-07}, so no update necessary.
+
+\section{2018-03-27}
+
+\subsection{Senate}
+Update of the micro Senate scoring by Cook, Inside Elections and Sabato:
+
+<<echo=FALSE>>=
+Senate <- read.csv("Data/senate_ratings_20180327.csv", header=TRUE, sep=";",col.names=c("State", "Incumbent","Party","Cook","Sabato","InsideElections"), dec=",", na.strings="NA", stringsAsFactors = TRUE)
+Senate %>% select(Party, Cook) -> JT.Cook
+Senate %>% select(Party, InsideElections) -> JT.InsideElections
+Senate %>% select(Party, Sabato) -> JT.Sabato
+scores <- c(0.95, 0.85, 0.75, 0.6, 0.5)
+Senate$DemProb <- (JT.ProbCalc(JT.Cook, scores) + JT.ProbCalc(JT.InsideElections, scores) + JT.ProbCalc(JT.Sabato, scores))/3
+# Simulation
+# Number of simulations
+N <- 10000
+race.senate <- matrix(0, N, nrow(Senate))
+set.seed(2018)
+for (i in 1:nrow(Senate)) {
+    race.senate[,i] <- rbinom(N, 1, Senate$DemProb[i])
+}
+race.senate.result <- rowSums(race.senate)
+prob <- sum(race.senate.result > 27)/N
+@
+
+<<label=senatesim28mrt,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.senate.result) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Senate: simulation on the micro level", subtitle="Small shift to 22 seats = loss of 2! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-senatesim28mrt}
+\caption{ }
+\label{fig:senatesim28mrt}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+The small changes in the evaluation by Cook and Sabato do not change the micro simulation. No reason to change the forecast on the Senate.
+
+\subsection{The House}
+
+No changes in the evaluation by The NY Times\sidenote{their update from 2018-02-07}, so no update necessary.
+
+
+\newpage
+\textbf{Thanks} \\
+\medskip
+R Core Team (2018). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+\medskip
+<<>>=
+sessionInfo()
+@
 
 \end{document}
