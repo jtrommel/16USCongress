@@ -892,7 +892,7 @@ prob <- sum(race.senate.result > 27)/N
 ggplot() +
   aes(race.senate.result) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
-  labs(title="Senate: simulation on the micro level", subtitle="Small shift to 22 seats = loss of 2! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
+  labs(title="Senate: simulation on the micro level", subtitle="Small shift to 22 seats = loss of 4! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
   scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
   JT.theme
 @
@@ -1008,6 +1008,185 @@ The probabilities are:
 \end{itemize}
 
 This  means that the probability that the Democrats win the House is \Sexpr{q1+q2}\% and this is the value I use for the general question.
+
+Using the ConfusionMatrix spreadsheet and the method explained before I get
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 18\% & 52\% & 70\% \\
+  $H_{Rep}$ & 6\% & 24\% & 30\% \\
+  \hline
+  \hline
+  Sum & 24\% & 76\% & 1 \\
+\end{tabular}
+\caption{Forecast 5}
+\label{tab:forecast5}
+\end{margintable}
+
+\section{2018-04-29}
+
+\subsection{Senate}
+Update of the micro Senate scoring by Cook, Inside Elections and Sabato:
+
+<<echo=FALSE>>=
+Senate <- read.csv("Data/senate_ratings_20180429.csv", header=TRUE, sep=";",col.names=c("State", "Incumbent","Party","Cook","Sabato","InsideElections"), dec=",", na.strings="NA", stringsAsFactors = TRUE)
+Senate %>% select(Party, Cook) -> JT.Cook
+Senate %>% select(Party, InsideElections) -> JT.InsideElections
+Senate %>% select(Party, Sabato) -> JT.Sabato
+scores <- c(0.95, 0.85, 0.75, 0.6, 0.5)
+Senate$DemProb <- (JT.ProbCalc(JT.Cook, scores) + JT.ProbCalc(JT.InsideElections, scores) + JT.ProbCalc(JT.Sabato, scores))/3
+# Simulation
+# Number of simulations
+N <- 10000
+race.senate <- matrix(0, N, nrow(Senate))
+set.seed(2018)
+for (i in 1:nrow(Senate)) {
+    race.senate[,i] <- rbinom(N, 1, Senate$DemProb[i])
+}
+race.senate.result <- rowSums(race.senate)
+prob <- sum(race.senate.result > 27)/N
+@
+
+<<label=senatesim29apr,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.senate.result) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Senate: simulation on the micro level", subtitle="A shift to 24 seats = loss of 2! Winning 28 seats is very unlikely", x="Number of Democratic seats") +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-senatesim29apr}
+\caption{ }
+\label{fig:senatesim29apr}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+The small changes in the evaluations by Cook, Sabato and Inside Elections give a small change in the micro simulation. No reason to change the forecast on the Senate.
+
+\subsection{The House}
+
+\newthought{Cook}\sidenote{\url{http://cookpolitical.com/ratings/house-race-ratings}} revised the status of all districts on April 27th 2018. The result of a simulation (N=10.000) based on the same evaluations of the probabilities for ''Safe"=0.95, ''Likely"=0.85, ''Lean"=0.75,  and ''Toss up"=0.50 is (Figure~\ref{fig:housesim3}).
+
+<<echo=FALSE>>=
+House <- data.frame(Number=c(179, 12, 9, 24, 26, 29, 156), Party=c("D", "D", "D", "D", "R", "R", "R"), Rating=c("Solid Dem", "Likely Dem", "Lean Dem", "Toss up", "Lean Rep", "Likely Rep", "Solid Rep"), DemProb=c(0.95, 0.85, 0.75, 0.5, 0.25, 0.15, 0.05))
+@
+
+<<>>=
+House
+@
+
+<<echo=FALSE>>=
+# Simulation
+# Number of simulations
+N <- 10000
+set.seed(2018)
+race.House.micro <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProb[1])))
+for (i in 2:7) {
+  race.House.micro <- cbind(race.House.micro, t(replicate(N, rbinom(House$Number[i], 1, House$DemProb[i]))))
+}
+race.result.House.micro <- rowSums(race.House.micro)
+prob.House <- sum(race.result.House.micro > 218)/N
+@
+
+<<label=housesim3,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.result.House.micro) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="House simulation", 
+       subtitle="217 seats = gain of 24",
+       x="Number of Democratic seats", 
+       caption="Based on ratings as published by Cook, 2018-04-29") +
+  scale_x_continuous(breaks = seq(150, 250, by=5),
+                     labels = seq(150, 250, by=5)) +
+  JT.theme
+@
+
+\begin{marginfigure}[7cm]
+\includegraphics[width=1\textwidth]{USC-housesim3}
+\caption{}
+\label{fig:housesim3}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+Starting from the data per state, the micro-simulation indicates that the Democrats are likely to \emph{win} 24 seats, getting them to 217. Almost there! To win 218 or more in order to win a majority in the House the (micro) probability of \Sexpr{round(prob.House*100,2)}\%.
+
+\newthought{Combining micro and macro}.
+
+<<echo=FALSE>>=
+House$DemProbCor <- ifelse((House$DemProb + 0.03) > 1, 0.999, (House$DemProb + 0.03))
+N <- 10000
+set.seed(2018)
+race.House.combi <-t(replicate(N, rbinom(House$Number[1], 1, House$DemProbCor[1])))
+for (i in 2:7) {
+  race.House.combi <- cbind(race.House.combi, t(replicate(N, rbinom(House$Number[i], 1, House$DemProbCor[i]))))
+}
+race.result.House.combi <- rowSums(race.House.combi)
+p1 <- 100*sum(race.result.House.combi>=230)/N
+p2 <- 0
+for (i in (218:229)) {
+  p2 <- p2 + 100*sum(race.result.House.combi==i)/N
+}
+p3 <- 0
+for (i in (206:217)) {
+  p3 <- p3 + 100*sum(race.result.House.combi==i)/N
+}
+p4 <- 100*sum(race.result.House.combi<=205)/N
+@
+
+The simulation with a moderate +3\% upgrade gives a mean of \Sexpr{round(mean(race.result.House.combi),0)} seats. The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{p1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{p2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{p4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{p3}\%
+\end{itemize}
+
+This also means that the probability that the Democrats win the House is \Sexpr{p1+p2}\%. 
+
+\newthought{Again this calculation} shows that the result for the House elections is very volatile with regard to the degree of interconnectedness: an upgrade of 3\% shifts the mean number of seats for the Democrats from 217 to 231 (+6.5\%), more than the double of the upgrade! The standard deviation is the same for the result of the micro simulation and the result of the combined simulation ($\sigma=$ \Sexpr{round(sd(race.result.House.combi),3)}). Because of this volatility I reduce the effect of the upgrade to a maximum rise of the mean number of seats to the level of the upgrade itself. In this case: an upgrade of 3\% can only lead to 224=217*1.03 seats. The standard deviation is kept at 5.61. This gives the following estimates:
+
+<<echo=FALSE>>=
+mu <- mean(race.result.House.micro)*1.03
+sigma <- sd(race.result.House.combi)
+q1 <- round(100*(1 - pnorm(230, mu, sigma)),2)
+q2 <- round(100*(pnorm(230, mu, sigma) - pnorm(218, mu, sigma)),2)
+q3 <- round(100*(pnorm(218, mu, sigma) - pnorm(205, mu, sigma)),2)
+q4 <- round(100*pnorm(205, mu, sigma),2)
+@
+
+The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{q1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{q2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{q4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{q3}\%
+\end{itemize}
+
+This  means that the probability that the Democrats win the House is \Sexpr{q1+q2}\% and this is the value I use for the general question.
+
+Using the ConfusionMatrix spreadsheet and the method explained before I get
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 18\% & 69\% & 87\% \\
+  $H_{Rep}$ & 2\% & 11\% & 13\% \\
+  \hline
+  \hline
+  Sum & 20\% & 80\% & 1 \\
+\end{tabular}
+\caption{Forecast 6}
+\label{tab:forecast6}
+\end{margintable}
 
 \newpage
 \textbf{Thanks} \\
