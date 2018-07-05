@@ -355,6 +355,7 @@ ggplot() +
 Starting from the data per state, the Democrats are likely to \emph{win} 17 seats, getting them to 210. That is close to 218 in order to win the House, but not there yet. The probability to do so is \emph{about 5\%}.
 
 \subsection{The macro view}
+\label{subsec:macrohouse}
 
 \newthought{For the House elections} there is a much stronger correlation between the number of seats \emph{gained} or \emph{lost} in a midterm election and the approval rate of the president\sidenote[][-2cm]{https://arxiv.org/pdf/1503.07545.pdf} than for the Senate. I have redone the calculation from this paper, including the 2014 result, a correction of the 1950 approval rating of Truman, and adding the disapproval rating and the term of the election.
 
@@ -408,6 +409,7 @@ ggplot(midterm1, aes(x=Approval, y=Gain.House)) +
 
 
 \begin{equation}
+\label{eq:modelhouse}
   y = -140.5292 + 2.2224*x
 \end{equation}
 
@@ -1186,6 +1188,558 @@ Using the ConfusionMatrix spreadsheet and the method explained before I get
 \end{tabular}
 \caption{Forecast 6}
 \label{tab:forecast6}
+\end{margintable}
+
+\newpage
+\section{2018-06-12}
+
+\newthought{The Weekly Standard} now has an election model\sidenote{https://www.weeklystandard.com/swingseat-senate-election-model/} for the Senate. The methodology is explained, however not into great detail. They also use the judgements by Cook, Sabato and Inside Elections, but the results are quiet different. For example: they put the chance of a Democratic win of the Senate on 31.5\%. My calculations still do not give them any chance at all.
+
+\subsection{Micro}
+
+\newthought{The Senate}. Update of the micro Senate scoring by Cook, Inside Elections and Sabato:
+
+<<echo=FALSE>>=
+Senate <- read.csv("Data/senate_ratings_20180612.csv", header=TRUE, sep=";",col.names=c("State", "Incumbent","Party","Cook","Sabato","InsideElections"), dec=",", na.strings="NA", stringsAsFactors = TRUE)
+Senate %>% select(Party, Cook) -> JT.Cook
+Senate %>% select(Party, InsideElections) -> JT.InsideElections
+Senate %>% select(Party, Sabato) -> JT.Sabato
+scores <- c(0.95, 0.85, 0.75, 0.6, 0.5)
+Senate$DemProb <- (JT.ProbCalc(JT.Cook, scores) + JT.ProbCalc(JT.InsideElections, scores) + JT.ProbCalc(JT.Sabato, scores))/3
+# Simulation
+# Number of simulations
+N <- 10000
+race.senate.micro <- matrix(0, N, nrow(Senate))
+set.seed(2018)
+for (i in 1:nrow(Senate)) {
+    race.senate.micro[,i] <- rbinom(N, 1, Senate$DemProb[i])
+}
+race.senate.result <- rowSums(race.senate.micro)
+prob <- sum(race.senate.result > 27)/N
+@
+
+<<label=senatesim12jun,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.senate.result) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Senate: simulation on the micro level", 
+       subtitle="A shift to 23 seats = loss of 3! Winning 28 seats is very unlikely", 
+       x="Number of Democratic seats",
+       caption="Based on ratings as published by Cook/Sabato/Inside Elections, 2018-06-01") +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-senatesim12jun}
+\caption{ }
+\label{fig:senatesim12jun}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+It seems (Figure~\ref{fig:senatesim12jun}) that the probability of the Democrats winning the senate has dropped further to \Sexpr{round(prob,0)}.
+
+\newthought{The House}. 
+From this date on I am not just using the data from Cook on the House elections but I also include those of Sabato and InsideElections (June 1th 2018) and use the average.
+
+<<echo=FALSE>>=
+House <- data.frame(Cook=c(180, 12, 8, 23, 26, 29, 157), Sabato=c(179,12,7,26,22,33,156), InsideElections=c(185,3,2,32,12,28,173), Party=c("D", "D", "D", "D", "R", "R", "R"), Rating=c("Solid Dem", "Likely Dem", "Lean Dem", "Toss up", "Lean Rep", "Likely Rep", "Solid Rep"), DemProb=c(0.95, 0.85, 0.75, 0.5, 0.25, 0.15, 0.05))
+House$average <- (House$Cook + House$Sabato + House$InsideElections)/3
+@
+\medskip
+<<>>=
+House
+@
+\medskip
+<<label=housesim4,fig=TRUE,include=FALSE, echo=FALSE>>=
+# Simulation
+# Number of simulations
+N <- 10000
+set.seed(2018)
+race.House.micro <-t(replicate(N, rbinom(House$average[1], 1, House$DemProb[1])))
+for (i in 2:7) {
+  race.House.micro <- cbind(race.House.micro, t(replicate(N, rbinom(House$average[i], 1, House$DemProb[i]))))
+}
+race.result.House.micro <- rowSums(race.House.micro)
+prob.House <- sum(race.result.House.micro >= 218)/N
+ggplot() +
+  aes(race.result.House.micro) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="House simulation", 
+       subtitle="217 seats = gain of 24",
+       x="Number of Democratic seats", 
+       caption="Based on ratings as published by Cook/Sabato/Inside Elections, 2018-06-01") +
+  scale_x_continuous(breaks = seq(150, 250, by=5),
+                     labels = seq(150, 250, by=5)) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-housesim4}
+\caption{}
+\label{fig:housesim4}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+Starting from the data per state, the micro-simulation indicates that the Democrats are likely to \emph{win} \Sexpr{round(mean(race.result.House.micro - 195),0)} seats (Figure~\ref{fig:housesim4}), getting them to \Sexpr{round(mean(race.result.House.micro),0)}. The (micro)probability of winning 218 or more seats (in order to win a majority in the House) is \Sexpr{round(prob.House*100,2)}\%.
+
+\subsection{Combining micro and macro}.
+
+\newthought{The Senate}
+
+<<echo=FALSE>>=
+Senate$DemProbCor <- ifelse((Senate$DemProb + 0.03) > 1, 0.999, (Senate$DemProb + 0.03))
+N <- 10000
+set.seed(2018)
+race.Senate.combi <- matrix(0, N, nrow(Senate))
+for (i in 1:nrow(Senate)) {
+    race.Senate.combi[,i] <- rbinom(N, 1, Senate$DemProbCor[i])
+}
+race.result.Senate.combi <- rowSums(race.Senate.combi)
+race.result.Senate.combi <- race.result.Senate.combi + 23 # Total number of seats
+p1 <- 100*sum(race.result.Senate.combi>=53)/N
+p2 <- 0
+for (i in (51:52)) {
+  p2 <- p2 + 100*sum(race.result.Senate.combi==i)/N
+}
+p3 <- 0
+for (i in (48:50)) {
+  p3 <- p3 + 100*sum(race.result.Senate.combi==i)/N
+}
+p4 <- 100*sum(race.result.Senate.combi<=47)/N
+@
+
+The simulation with a moderate +3\% upgrade gives a mean of \Sexpr{round(mean(race.result.Senate.combi),0)} seats. The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 53 or more senators. Probability=\Sexpr{p1}\%
+    \item Democratic Party, with less than 53 senators. Probability=\Sexpr{p2}\%
+    \item Republican Party, with 53 or more senators. Probability=\Sexpr{p4}\%
+    \item Republican Party, with less than 53 senators. Probability=\Sexpr{p3}\%
+\end{itemize}
+
+This also means that the probability that the Democrats win the Senate is \Sexpr{p1+p2}\%. 
+
+\newthought{The House}
+
+<<echo=FALSE>>=
+House$DemProbCor <- ifelse((House$DemProb + 0.03) > 1, 0.999, (House$DemProb + 0.03))
+N <- 10000
+set.seed(2018)
+race.House.combi <-t(replicate(N, rbinom(House$average[1], 1, House$DemProbCor[1])))
+for (i in 2:7) {
+  race.House.combi <- cbind(race.House.combi, t(replicate(N, rbinom(House$average[i], 1, House$DemProbCor[i]))))
+}
+race.result.House.combi <- rowSums(race.House.combi)
+p1 <- 100*sum(race.result.House.combi>=230)/N
+p2 <- 0
+for (i in (218:229)) {
+  p2 <- p2 + 100*sum(race.result.House.combi==i)/N
+}
+p3 <- 0
+for (i in (206:217)) {
+  p3 <- p3 + 100*sum(race.result.House.combi==i)/N
+}
+p4 <- 100*sum(race.result.House.combi<=205)/N
+@
+
+The simulation with a moderate +3\% upgrade gives a mean of \Sexpr{round(mean(race.result.House.combi),0)} seats. The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{p1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{p2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{p4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{p3}\%
+\end{itemize}
+
+This also means that the probability that the Democrats win the House is \Sexpr{p1+p2}\%. 
+
+\newthought{Again this calculation} shows that the result for the House elections is very volatile with regard to the degree of interconnectedness: an upgrade of 3\% shifts the mean number of seats for the Democrats from \Sexpr{round(mean(race.result.House.micro),0)} to \Sexpr{round(mean(race.result.House.combi),0)} (\Sexpr{round(100*(mean(race.result.House.combi)- mean(race.result.House.micro))/mean(race.result.House.micro),2)}\%)! The standard deviation is the same for the result of the micro simulation and the result of the combined simulation ($\sigma=$ \Sexpr{round(sd(race.result.House.combi),3)}). Because of this volatility I reduce the effect of the upgrade to a maximum rise of the mean number of seats to the level of the upgrade itself. In this case: an upgrade of 3\% can only lead to \Sexpr{round(mean(race.result.House.micro)*1.03,0)} seats. The standard deviation is kept at \Sexpr{round(sd(race.result.House.combi),3)}. This gives the following estimates:
+
+<<echo=FALSE>>=
+mu <- mean(race.result.House.micro)*1.03
+sigma <- sd(race.result.House.combi)
+q1 <- round(100*(1 - pnorm(230, mu, sigma)),2)
+q2 <- round(100*(pnorm(230, mu, sigma) - pnorm(218, mu, sigma)),2)
+q3 <- round(100*(pnorm(218, mu, sigma) - pnorm(205, mu, sigma)),2)
+q4 <- round(100*pnorm(205, mu, sigma),2)
+@
+
+The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{q1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{q2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{q4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{q3}\%
+\end{itemize}
+
+This  means that the probability that the Democrats win the House is \Sexpr{q1+q2}\% and this is the value I use for the general question.
+
+Using the ConfusionMatrix spreadsheet and the method explained before I get
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 8\% & 61\% & 69\% \\
+  $H_{Rep}$ & 2\% & 29\% & 31\% \\
+  \hline
+  \hline
+  Sum & 10\% & 90\% & 1 \\
+\end{tabular}
+\caption{Forecast 7}
+\label{tab:forecast7}
+\end{margintable}
+
+\newpage
+\section{2018-07-02}
+
+\subsection{Micro}
+
+\newthought{The Senate}. Update of the micro Senate scoring by Cook, Inside Elections and Sabato (2018-07-02).
+
+<<echo=FALSE>>=
+Senate <- data.frame(Cook=c(14, 5, 2, 8, 0, 3, 3), Sabato=c(15,5,1,7,1,2,4), InsideElections=c(16,2,1,9,1,1,5), Party=c("D", "D", "D", "D", "R", "R", "R"), Rating=c("Solid Dem", "Likely Dem", "Lean Dem", "Toss up", "Lean Rep", "Likely Rep", "Solid Rep"), DemProb=c(0.95, 0.85, 0.75, 0.5, 0.25, 0.15, 0.05))
+# Simulation
+# Number of simulations
+N <- 10000
+set.seed(2018)
+race.Senate.micro.Cook <-t(replicate(N, rbinom(Senate$Cook[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$Cook[i] != 0) {
+    if(Senate$Cook[i]==1) {
+           race.Senate.micro.Cook <- cbind(race.Senate.micro.Cook, 
+                                             as.matrix(replicate(N, rbinom(Senate$Cook[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.micro.Cook <- cbind(race.Senate.micro.Cook, 
+                                            t(replicate(N, rbinom(Senate$Cook[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.Senate.micro.Sabato <-t(replicate(N, rbinom(Senate$Sabato[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$Sabato[i] != 0) {
+    if(Senate$Sabato[i]==1) {
+           race.Senate.micro.Sabato <- cbind(race.Senate.micro.Sabato, 
+                                             as.matrix(replicate(N, rbinom(Senate$Sabato[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.micro.Sabato <- cbind(race.Senate.micro.Sabato, 
+                                            t(replicate(N, rbinom(Senate$Sabato[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.Senate.micro.InsideElections <-t(replicate(N, rbinom(Senate$InsideElections[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$InsideElections[i] != 0) {
+    if(Senate$InsideElections[i]==1) {
+           race.Senate.micro.InsideElections <- cbind(race.Senate.micro.InsideElections, 
+                                             as.matrix(replicate(N, rbinom(Senate$InsideElections[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.micro.InsideElections <- cbind(race.Senate.micro.InsideElections, 
+                                            t(replicate(N, rbinom(Senate$InsideElections[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.result.Senate.micro <- (rowSums(race.Senate.micro.Cook) + rowSums(race.Senate.micro.Sabato) + rowSums(race.Senate.micro.InsideElections))/3
+prob <- sum(race.result.Senate.micro >27)/N
+@
+
+<<label=senatesim02jul,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.senate.result) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Senate: simulation on the micro level", 
+       subtitle=paste("Win of", round(mean(race.result.Senate.micro),0),"seats = loss of", round(mean(race.result.Senate.micro),0)-26,"!") , 
+       x="Number of Democratic seats",
+       caption="Based on ratings as published by Cook/Sabato/Inside Elections, 2018-07-02") +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
+  JT.theme
+@
+
+<<>>=
+Senate
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-senatesim02jul}
+\caption{ }
+\label{fig:senatesim02jul}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+In this micro simulation the Democrats win on average \Sexpr{round(mean(race.result.Senate.micro),0)} seats (Figure~\ref{fig:senatesim02jul}). The probability of the Democrats winning the senate is \Sexpr{round(100*prob,0)}\%.
+
+There is strong agreement between Cook and Sabato. Inside Elections show a shift from ''Likely Democrat" towards ''Toss up". We can compare the opinions of these raters with the results of recent polls\sidenote{https://fivethirtyeight.com/features/why-republicans-may-have-a-narrow-senate-advantage/}:
+
+\begin{itemize}
+  \item Ohio: Brown has a double digit lead in the polls. Cook and Inside Elections position this state as ''Lean Democrat". On the basis of the polls I change the settings in Cook and Inside Elections to ''Likely Democrat"
+  \item Pennsylvania: also double digit lead in the pool for Casey. No adjustment is needed because all raters have this state as eiter ''Likely D" or ''Solid D"
+  \item Montana: Tester leads 51/44. Sabato has this state as ''Lean D" and Inside Elections as ''Tilt D" (which I group with ''Toss-up"). On the basis of the polls I upgrade Montana in Sabato and Inside Elections to ''Likely D"
+  \item West-Virginia: Manchin leads 48/39. All raters have this state as ''Toss-up". Upgrade to ''Likely D"
+  \item Wisconsin: Baldwin leads 49/40. Inside Elections have this state as ''Tilt D". Upgrade to ''Likely D"
+  \item Florida and North-Dacota: polls say ''Toss-up" and all raters do the same. No change
+\end{itemize}
+
+<<echo=FALSE>>=
+Senate <- data.frame(Cook=c(14, 7, 1, 7, 0, 3, 3), Sabato=c(15,7,0,6,1,2,4), InsideElections=c(16,6,0,6,1,1,5), Party=c("D", "D", "D", "D", "R", "R", "R"), Rating=c("Solid Dem", "Likely Dem", "Lean Dem", "Toss up", "Lean Rep", "Likely Rep", "Solid Rep"), DemProb=c(0.95, 0.85, 0.75, 0.5, 0.25, 0.15, 0.05))
+# Simulation
+# Number of simulations
+N <- 10000
+set.seed(2018)
+race.Senate.micro.Cook <-t(replicate(N, rbinom(Senate$Cook[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$Cook[i] != 0) {
+    if(Senate$Cook[i]==1) {
+           race.Senate.micro.Cook <- cbind(race.Senate.micro.Cook, 
+                                             as.matrix(replicate(N, rbinom(Senate$Cook[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.micro.Cook <- cbind(race.Senate.micro.Cook, 
+                                            t(replicate(N, rbinom(Senate$Cook[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.Senate.micro.Sabato <-t(replicate(N, rbinom(Senate$Sabato[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$Sabato[i] != 0) {
+    if(Senate$Sabato[i]==1) {
+           race.Senate.micro.Sabato <- cbind(race.Senate.micro.Sabato, 
+                                             as.matrix(replicate(N, rbinom(Senate$Sabato[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.micro.Sabato <- cbind(race.Senate.micro.Sabato, 
+                                            t(replicate(N, rbinom(Senate$Sabato[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.Senate.micro.InsideElections <-t(replicate(N, rbinom(Senate$InsideElections[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$InsideElections[i] != 0) {
+    if(Senate$InsideElections[i]==1) {
+           race.Senate.micro.InsideElections <- cbind(race.Senate.micro.InsideElections, 
+                                             as.matrix(replicate(N, rbinom(Senate$InsideElections[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.micro.InsideElections <- cbind(race.Senate.micro.InsideElections, 
+                                            t(replicate(N, rbinom(Senate$InsideElections[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.result.Senate.micro <- (rowSums(race.Senate.micro.Cook) + rowSums(race.Senate.micro.Sabato) + rowSums(race.Senate.micro.InsideElections))/3
+prob <- sum(race.result.Senate.micro >27)/N
+@
+
+<<label=senatesim02julb,fig=TRUE,include=FALSE, echo=FALSE>>=
+ggplot() +
+  aes(race.senate.result) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="Senate: simulation on the micro level - revised", 
+       subtitle=paste("Win of", round(mean(race.result.Senate.micro),0),"seats = loss of", round(mean(race.result.Senate.micro),0)-26,"!") , 
+       x="Number of Democratic seats",
+       caption="Based on revised ratings by Cook/Sabato/Inside Elections") +
+  scale_x_discrete(limits=min(race.senate.result):max(race.senate.result), labels = c(min(race.senate.result):max(race.senate.result))) +
+  JT.theme
+@
+\newpage
+<<>>=
+Senate
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-senatesim02julb}
+\caption{ }
+\label{fig:senatesim02julb}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+The micro simulation with the revised ratings on the basis of the polling results indicate that the Democrats get on average \Sexpr{round(mean(race.result.Senate.micro),0)} seats, which is only 1 seat more than with the unrevised ratings (Figure~\ref{fig:senatesim02julb}). The probability of the Democrats winning the senate is still negligible: \Sexpr{round(100*prob,0)}\%.
+
+\newthought{The House}. 
+
+<<echo=FALSE>>=
+House <- data.frame(Cook=c(180, 12, 9, 24, 25, 29, 156), Sabato=c(179,13,7,28,21,32,155), InsideElections=c(185,5,2,32,12,26,173), Party=c("D", "D", "D", "D", "R", "R", "R"), Rating=c("Solid Dem", "Likely Dem", "Lean Dem", "Toss up", "Lean Rep", "Likely Rep", "Solid Rep"), DemProb=c(0.95, 0.85, 0.75, 0.5, 0.25, 0.15, 0.05))
+House$average <- (House$Cook + House$Sabato + House$InsideElections)/3
+@
+
+\medskip
+<<label=housesim5,fig=TRUE,include=FALSE, echo=FALSE>>=
+# Simulation
+# Number of simulations
+N <- 10000
+set.seed(2018)
+race.House.micro <-t(replicate(N, rbinom(House$average[1], 1, House$DemProb[1])))
+for (i in 2:7) {
+  race.House.micro <- cbind(race.House.micro, t(replicate(N, rbinom(House$average[i], 1, House$DemProb[i]))))
+}
+race.result.House.micro <- rowSums(race.House.micro)
+prob.House <- sum(race.result.House.micro >= 218)/N
+ggplot() +
+  aes(race.result.House.micro) +
+  geom_histogram(binwidth=1, colour="black", fill="white") +
+  labs(title="House simulation", 
+       subtitle=paste("213 seats = gain of", round(mean(race.result.House.micro),0)-193, "seats"),
+       x="Number of Democratic seats", 
+       caption="Based on ratings as published by Cook/Sabato/Inside Elections, 2018-07-02") +
+  scale_x_continuous(breaks = seq(150, 250, by=5),
+                     labels = seq(150, 250, by=5)) +
+  JT.theme
+@
+
+\begin{marginfigure}[0cm]
+\includegraphics[width=1\textwidth]{USC-housesim5}
+\caption{}
+\label{fig:housesim5}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{marginfigure}
+
+Starting from the data per state, the micro-simulation indicates that the Democrats are likely to \emph{win} \Sexpr{round(mean(race.result.House.micro - 195),0)} extra seats (Figure~\ref{fig:housesim5}), getting them to \Sexpr{round(mean(race.result.House.micro),0)}. The (micro)probability of getting 218 or more seats (in order to win a majority in the House) is \Sexpr{round(prob.House*100,2)}\%.
+
+\subsection{Combining micro and macro}.
+
+\newthought{The Senate}
+
+<<echo=FALSE>>=
+Senate$DemProbCor <- ifelse((Senate$DemProb + 0.03) > 1, 0.999, (Senate$DemProb + 0.03))
+N <- 10000
+set.seed(2018)
+race.Senate.combi.Cook <-t(replicate(N, rbinom(Senate$Cook[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$Cook[i] != 0) {
+    if(Senate$Cook[i]==1) {
+           race.Senate.combi.Cook <- cbind(race.Senate.combi.Cook, 
+                                             as.matrix(replicate(N, rbinom(Senate$Cook[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.combi.Cook <- cbind(race.Senate.combi.Cook, 
+                                            t(replicate(N, rbinom(Senate$Cook[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.Senate.combi.Sabato <-t(replicate(N, rbinom(Senate$Sabato[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$Sabato[i] != 0) {
+    if(Senate$Sabato[i]==1) {
+           race.Senate.combi.Sabato <- cbind(race.Senate.combi.Sabato, 
+                                             as.matrix(replicate(N, rbinom(Senate$Sabato[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.combi.Sabato <- cbind(race.Senate.combi.Sabato, 
+                                            t(replicate(N, rbinom(Senate$Sabato[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.Senate.combi.InsideElections <-t(replicate(N, rbinom(Senate$InsideElections[1], 1, Senate$DemProb[1])))
+for (i in 2:7) {
+  if(Senate$InsideElections[i] != 0) {
+    if(Senate$InsideElections[i]==1) {
+           race.Senate.combi.InsideElections <- cbind(race.Senate.combi.InsideElections, 
+                                             as.matrix(replicate(N, rbinom(Senate$InsideElections[i], 1, Senate$DemProb[i]))))
+        } else {
+          race.Senate.combi.InsideElections <- cbind(race.Senate.combi.InsideElections, 
+                                            t(replicate(N, rbinom(Senate$InsideElections[i], 1, Senate$DemProb[i]))))
+    }
+  }
+}
+race.result.Senate.combi <- (rowSums(race.Senate.combi.Cook) + rowSums(race.Senate.combi.Sabato) + rowSums(race.Senate.combi.InsideElections))/3
+race.result.Senate.combi <- race.result.Senate.combi + 23 # Total number of seats
+p1 <- 100*sum(race.result.Senate.combi>=53)/N
+p2 <- 100*sum(race.result.Senate.combi>=51 & race.result.Senate.combi<53)/N
+p3 <- 100*sum(race.result.Senate.combi>47 & race.result.Senate.combi<51)/N
+p4 <- 100*sum(race.result.Senate.combi<=47)/N
+@
+
+The  simulation (with the revised ratings on the basis of the polling results) and with a moderate +3\% upgrade shows that the Democrats get on average \Sexpr{round(mean(race.result.Senate.combi),0)} seats. The probability of the Democrats winning the senate is still negligible: \Sexpr{round((p1+p2),0)}\%.
+
+The probabilities for the Good Judgement question are:
+
+\begin{itemize}
+    \item Democratic Party, with 53 or more senators. Probability=\Sexpr{p1}\%
+    \item Democratic Party, with less than 53 senators. Probability=\Sexpr{p2}\%
+    \item Republican Party, with 53 or more senators. Probability=\Sexpr{p4}\%
+    \item Republican Party, with less than 53 senators. Probability=\Sexpr{p3}\%
+\end{itemize}
+
+The reasons that make it so difficult for the Democrats to win the Senate are unchanged: they have to defend 26 seats while the Republicans just a third (9) of that number. Even if all the 26 Democratic seats were safe (which they are not), they would still need to take 2 seats from the 9 Republican incumbents. The Democrat's biggest opportunities are in Arizona and Nevada. In Arizona we will have to wait until the Republican primary on August 28th to see who will be running on the Republican side. In Nevada, the most recent polls still show that Heller and Rosen have the same support. There are at the moment no signs that these states move significantly towards the Democrats.
+
+\newthought{The House}
+
+<<echo=FALSE>>=
+House$DemProbCor <- ifelse((House$DemProb + 0.03) > 1, 0.999, (House$DemProb + 0.03))
+N <- 10000
+set.seed(2018)
+race.House.combi <-t(replicate(N, rbinom(House$average[1], 1, House$DemProbCor[1])))
+for (i in 2:7) {
+  race.House.combi <- cbind(race.House.combi, t(replicate(N, rbinom(House$average[i], 1, House$DemProbCor[i]))))
+}
+race.result.House.combi <- rowSums(race.House.combi)
+p1 <- 100*sum(race.result.House.combi>=230)/N
+p2 <- 0
+for (i in (218:229)) {
+  p2 <- p2 + 100*sum(race.result.House.combi==i)/N
+}
+p3 <- 0
+for (i in (206:217)) {
+  p3 <- p3 + 100*sum(race.result.House.combi==i)/N
+}
+p4 <- 100*sum(race.result.House.combi<=205)/N
+@
+
+The simulation with a moderate +3\% upgrade gives a mean of \Sexpr{round(mean(race.result.House.combi),0)} seats. The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{p1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{p2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{p4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{p3}\%
+\end{itemize}
+
+This also means that the probability that the Democrats win the House is \Sexpr{p1+p2}\%. 
+
+\newthought{Again this calculation} shows that the result for the House elections is very volatile with regard to the degree of interconnectedness: an upgrade of 3\% shifts the mean number of seats for the Democrats from \Sexpr{round(mean(race.result.House.micro),0)} (a gain of \Sexpr{round(mean(race.result.House.micro),0)-193}) to \Sexpr{round(mean(race.result.House.combi),0)} (a gain of \Sexpr{round(mean(race.result.House.combi),0)-193} or +\Sexpr{round(100*(mean(race.result.House.combi)- mean(race.result.House.micro))/mean(race.result.House.micro),2)}\%)! 
+
+In \ref{subsec:macrohouse} we constructed a linear model linking the president's approval rate (Gallup) with the number of House-seats gained or lost. For first time presidents the relation is given by:
+
+\begin{equation}
+  y = -140.5292 + 2.2224*x
+\end{equation}
+
+At the moment the approval rate of the president is 42\% which predicts that the Republicans could lose \Sexpr{round(-140.5292 + 2.2224*42,0)} seats. The 95\% confidence interval is [\Sexpr{round(-140.5292 + 2.2224*42 +15,0)},\Sexpr{round(-140.5292 + 2.2224*42 -15,0)}]. Our upgrade model for the House (+3\%) does not seem excessive because it predicts a loss for the Republicans of -\Sexpr{round(mean(race.result.House.combi),0)-193} which is at the low edge of the confidence interval.
+
+The degree of volatility is still high so I still limit the upgrade effect to a maximum rise of the mean number of seats to the level of the upgrade itself. In this case: an upgrade of 3\% can only lead to \Sexpr{round(mean(race.result.House.micro)*1.03,0)} seats. The standard deviation is kept at \Sexpr{round(sd(race.result.House.combi),3)}. With these assumptions I get the following probabilities:
+
+<<echo=FALSE>>=
+mu <- mean(race.result.House.micro)*1.03
+sigma <- sd(race.result.House.combi)
+q1 <- round(100*(1 - pnorm(230, mu, sigma)),2)
+q2 <- round(100*(pnorm(230, mu, sigma) - pnorm(218, mu, sigma)),2)
+q3 <- round(100*(pnorm(218, mu, sigma) - pnorm(205, mu, sigma)),2)
+q4 <- round(100*pnorm(205, mu, sigma),2)
+@
+
+The probabilities are:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{q1}\%
+    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{q2}\%
+    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{q4}\%
+    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{q3}\%
+\end{itemize}
+
+This  means that the probability that the Democrats win the House is \Sexpr{q1+q2}\% and this is the value I use for the general question.
+
+
+Using the ConfusionMatrix spreadsheet and the method explained before I get
+\begin{margintable}[0cm]
+\centering
+\begin{tabular}{ l | r | r || r | }
+    & $S_{Dem}$ & $S_{Rep}$ & Sum \\
+  \hline
+  \hline
+  $H_{Dem}$ & 4\% & 76\% & 80\% \\
+  $H_{Rep}$ & 1\% & 19\% & 20\% \\
+  \hline
+  \hline
+  Sum & 5\% & 95\% & 100\% \\
+\end{tabular}
+\caption{Forecast 8}
+\label{tab:forecast8}
 \end{margintable}
 
 \newpage
