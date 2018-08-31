@@ -63,6 +63,8 @@ elections?}
 
 <<echo=FALSE>>=
 library(tidyverse)
+library(gridExtra)
+library(broom)
 library(lubridate)
 library(forecast)
 library(zoo)
@@ -2035,14 +2037,63 @@ ggplot(data=House_Classic, aes(x=Rep.seats, y=Prob)) +
 Some checks:
 \begin{itemize}
   \item total probability that the Democrats win the House: 538 (23.08.2018)=71,6\% - digitized=$\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats<218]),2)}$\%
-  \item probability that the Democrats win more than 55 seats. That would bring their total to more than 250 and the Republicans to less than 185): 538 (23.08.2018)=10\% - $\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats<185]),2)}$\%
+  \item probability that the Democrats win more than 55 seats. That would bring their total to more than 250 and the Republicans to less than 185): 538 (23.08.2018)=10\% - digitized=$\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats<185]),2)}$\%
   \item probability that the Democrats win 13 to 55 seats (or Republicans 185 to 2227): 538 (23.08.2018)=80\% - digitized=$\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats>184 & House_Classic$Rep.seats<228]),2)}$\%
   \item probability that the Democrats win less than 13  (or Republicans more than 227): 538 (23.08.2018)=10\% - digitized=$\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats>227]),2)}$\%
 \end{itemize}
 
 The digitisation is more or less OK.
 
-The remarkable thing is that the plot is not symmetrical: it has a long tail on the left side (fewer Republican seats). This asymmetry indicates that
+The remarkable thing is that the plot is not symmetrical: it has a long tail on the left side (fewer Republican seats). What is going on?
+\begin{itemize}
+  \item For the Democrats the number of ''Safe/Solid" seats is 191. According to 538 the minimum seats they gain is 187. In the worst case the Democrats keep about the number of ''Safe" seats
+  \item For the Repbulicans the number of ''Safe/Solid" seats is 137. According to 538 the minimum seats they gain is 146. In the worst case the Republicans have a little more than their ''Safe" seats
+  \item That means that the competition is for the 98 remaining seats which are dubbed ''Likely", ''Lean", ''Tilt" or ''Toss-up".
+  \item There are 69 Republican seats ''Likely/Lean/Tilt" and only 23 Democratic seats. As we can see from the boxplots in Figur~\ref{fig:HouseCpopvote} there is no big difference in the estimate of the populare vote between Democrats and Republicans in the categories ''Likely" and ''Lean".
+\end{itemize}
+
+<<label=HouseCpopvote,fig=TRUE,include=FALSE, echo=FALSE>>=
+HC.safe<- read.csv(file="Data/popular vote prediction 538 safe.csv", header=TRUE, sep=",", dec=".")
+HC.likely<- read.csv(file="Data/popular vote prediction 538 likely.csv", header=TRUE, sep=",", dec=".")
+HC.lean<- read.csv(file="Data/popular vote prediction 538 lean.csv", header=TRUE, sep=",", dec=".")
+p.safe <- ggplot(HC.safe, aes(x=Party, y=pop.vote)) + 
+    geom_boxplot() +
+   labs(title="Safe") + 
+    JT.theme
+p.likely <- ggplot(HC.likely, aes(x=Party, y=pop.vote)) + 
+    geom_boxplot() + 
+  labs(title="Likely") +
+  JT.theme
+p.lean <- ggplot(HC.lean, aes(x=Party, y=pop.vote)) + 
+    geom_boxplot() +
+  labs(title="Lean") +
+  JT.theme
+grid.arrange(p.safe, p.likely, p.lean, nrow=1, ncol=3)
+t.safe <- t.test(HC.safe$pop.vote[HC.safe$Party=="D"],HC.safe$pop.vote[HC.safe$Party=="R"], alternative="greater")
+t.likely <- t.test(HC.likely$pop.vote[HC.likely$Party=="D"],HC.likely$pop.vote[HC.likely$Party=="R"], alternative="greater")
+t.lean <- t.test(HC.lean$pop.vote[HC.lean$Party=="D"],HC.lean$pop.vote[HC.lean$Party=="R"], alternative="greater")
+broom::tidy(t.safe)$p.value
+broom::tidy(t.likely)$p.value
+broom::tidy(t.lean)$p.value
+@
+
+\begin{figure}
+\includegraphics[width=1\textwidth]{USC-HouseCpopvote}
+\caption{ }
+\label{fig:HouseC1}
+\setfloatalignment{b}% forces caption to be bottom-aligned
+\end{figure}
+
+538 does its simulations for each district and not for the large groups ''Safe", ''Likely", ''Lean" etc. Furthermore they do not only take into account the polls of the popular vote, but also the fundraising capability of the candidate. A comparision of my prognosis and the simulation by 538 of the House election:
+
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. My prognosis =\Sexpr{q1}\%. 538=\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats<205]),2)}\%
+    \item Democratic Party, with less than 230 representatives. My prognosis=\Sexpr{q2}\%. 538=\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats>204 & House_Classic$Rep.seats<218]),2)}\%
+    \item Republican Party, with 230 or more representatives. My prognosis=\Sexpr{q4}\%. 538=\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats>229]),2)}\%
+    \item Republican Party, with less than 230 representatives. My prognosis=\Sexpr{q3}\%. 538=\Sexpr{round(100*sum(House_Classic$Prob[House_Classic$Rep.seats>217 & House_Classic$Rep.seats<229]),2)}\%
+\end{itemize}
+
+
 
 \newpage
 \textbf{Thanks} \\
