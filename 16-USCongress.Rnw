@@ -2298,6 +2298,14 @@ The Democrat's biggest opportunities are in Arizona and Nevada.
   \item In Nevada, the most recent polls still show Rosen (D) on 42.7\% and Heller (R) on 42\%. Again all considered ''Toss-up"
 \end{itemize}
 
+The 538 forecast changes my view: the probability distribution is skewed. This changes the pattern. For the Senate question I will therefor take the average of my calculation and the 538 prognosis. This gives me:
+\begin{itemize}
+    \item Democratic Party, with 53 or more senators: average=4\%
+    \item Democratic Party, with less than 53 senators: average=12\%
+    \item Republican Party, with 53 or more senators: average=43\%
+    \item Republican Party, with less than 53 senators: average=41\%
+\end{itemize}
+
 \newthought{The House}
 
 <<echo=FALSE>>=
@@ -2353,18 +2361,17 @@ q3 <- round(100*(pnorm(218, mu, sigma) - pnorm(205, mu, sigma)),2)
 q4 <- round(100*pnorm(205, mu, sigma),2)
 @
 
-The probabilities are:
-
-\begin{itemize}
-    \item Democratic Party, with 230 or more representatives. Probability=\Sexpr{q1}\%
-    \item Democratic Party, with less than 230 representatives. Probability=\Sexpr{q2}\%
-    \item Republican Party, with 230 or more representatives. Probability=\Sexpr{q4}\%
-    \item Republican Party, with less than 230 representatives. Probability=\Sexpr{q3}\%
-\end{itemize}
-
 This  means that the probability that the Democrats win the House is \Sexpr{q1+q2}\% and this is the value I use for the general question.
 
-I am still worried by the asymmetry in the distributions published by 538. So I will adapt a little. I keep the House chances on 80\% (D) - 20\% (R), but I change the chances for the Senate to 12\% (D) - 88\% (R).
+The following table shows my calculations and the prognosis by 538:
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives. My calculation=\Sexpr{q1}\% - 538: 52\%
+    \item Democratic Party, with less than 230 representatives. My calculation=\Sexpr{q2}\% - 538: 29\%
+    \item Republican Party, with 230 or more representatives. My calculation=\Sexpr{q4}\% - 538: 3\%
+    \item Republican Party, with less than 230 representatives. My calculation=\Sexpr{q3}\% - 538: 16\%
+\end{itemize}
+
+I am still worried by the asymmetry in the distributions published by 538. I guess this is the consequence ot them using a multivariate regression while I use only one variable: the ''likelyhood" of winning. So I will adapt a little. I keep the House chances on 80\% (D) - 20\% (R), but I change the chances for the Senate to 12\% (D) - 88\% (R).
 Using the ConfusionMatrix spreadsheet and the method explained before I get
 \begin{margintable}[0cm]
 \centering
@@ -2382,6 +2389,13 @@ Using the ConfusionMatrix spreadsheet and the method explained before I get
 \label{tab:forecast9}
 \end{margintable}
 
+For the House question I will take the average of my calculation and the 538 prognosis. This gives me:
+\begin{itemize}
+    \item Democratic Party, with 230 or more representatives: average=49\%
+    \item Democratic Party, with less than 230 representatives: average=40\%
+    \item Republican Party, with 230 or more representatives: average=2\%
+    \item Republican Party, with less than 230 representatives: average=9\%
+\end{itemize}
 
 \newpage
 \textbf{Thanks} \\
